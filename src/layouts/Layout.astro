@@ -1,0 +1,60 @@
+---
+import Navbar from '../components/common/Navbar.astro';
+import Footer from '../components/common/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  hideFooter?: boolean;
+}
+
+const { 
+  title = "SIAPP | Sistema Integral de Gestión Académica", 
+  description = "Software ERP y gestión académica integral para institutos, colegios y universidades del Perú.",
+  hideFooter = false
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+
+    <!-- Google Fonts: Inter / Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet" />
+    
+    <!-- Font Awesome Pro Oficial Local -->
+    <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
+    <link rel="stylesheet" href="/fontawesome/css/fontawesome.min.css" />
+    <link rel="stylesheet" href="/fontawesome/css/solid.min.css" />
+    <link rel="stylesheet" href="/fontawesome/css/light.min.css" />
+    <link rel="stylesheet" href="/fontawesome/css/brands.min.css" />
+    <link rel="stylesheet" href="/fontawesome/css/duotone.min.css" />
+  </head>
+  <body class="bg-slate-50 text-slate-900 font-['Inter',sans-serif] min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+    <!-- Navbar Global -->
+    <Navbar />
+
+    <!-- Contenido de la Página -->
+    <main class="flex-grow">
+      <slot />
+    </main>
+
+    <!-- Footer Global -->
+    {!hideFooter && <Footer />}
+  </body>
+</html>
+
+<style is:global>
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Outfit', sans-serif;
+  }
+</style>

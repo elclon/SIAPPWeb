@@ -1,0 +1,152 @@
+---
+const currentPath = Astro.url.pathname;
+
+const navLinks = [
+  { name: 'Inicio', href: '/' },
+  { name: 'Módulos', href: '/modulos' },
+  { name: 'Planes', href: '/planes' },
+  { name: 'Nosotros', href: '/nosotros' },
+  { name: 'Contacto', href: '/contacto' },
+];
+---
+
+<header class="sticky top-0 z-50 w-full bg-white/85 backdrop-blur-md border-b border-slate-200/80 transition-all">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-20">
+      
+      <!-- Logo SIAPP -->
+      <a href="/" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">
+          <i class="fa-sharp fa-solid fa-graduation-cap text-lg"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-['Outfit',sans-serif] font-extrabold text-2xl tracking-tight bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-800 bg-clip-text text-transparent">
+            SIAPP
+          </span>
+          <span class="text-[10px] uppercase font-bold tracking-widest text-blue-600 -mt-1">
+            Gestión Académica
+          </span>
+        </div>
+      </a>
+
+      <!-- Menú de Navegación Desktop -->
+      <nav class="hidden md:flex items-center gap-1 lg:gap-2">
+        {navLinks.map(link => {
+          const isActive = currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href));
+          return (
+            <a
+              href={link.href}
+              class={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
+                isActive 
+                  ? 'text-blue-600 bg-blue-50/80 font-semibold' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+              }`}
+            >
+              {link.name}
+            </a>
+          );
+        })}
+      </nav>
+
+      <!-- Botones de Acción (Derecha) -->
+      <div class="hidden md:flex items-center gap-3">
+        <!-- Portal de Clientes / Pago -->
+        <a
+          href="/clientes"
+          class={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium border transition-all duration-150 ${
+            currentPath.startsWith('/clientes')
+              ? 'bg-amber-500/10 text-amber-700 border-amber-300 font-semibold'
+              : 'border-slate-200 text-slate-700 hover:border-amber-400 hover:bg-amber-50/50 hover:text-amber-700'
+          }`}
+        >
+          <i class="fa-light fa-wallet text-amber-600"></i>
+          <span>Portal Clientes</span>
+        </a>
+
+        <!-- Acceso al ERP -->
+        <a
+          href="https://itep.siapp.edu.pe"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-150"
+        >
+          <span>Acceder al Sistema</span>
+          <i class="fa-light fa-arrow-up-right-from-square text-xs"></i>
+        </a>
+      </div>
+
+      <!-- Botón Menú Hamburguesa Móvil -->
+      <div class="flex md:hidden items-center gap-2">
+        <a
+          href="/clientes"
+          class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg text-sm"
+          title="Portal Clientes"
+        >
+          <i class="fa-light fa-wallet text-lg"></i>
+        </a>
+        <button
+          id="mobile-menu-button"
+          type="button"
+          class="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none"
+          aria-label="Abrir menú"
+        >
+          <i class="fa-light fa-bars text-xl" id="menu-icon-bars"></i>
+          <i class="fa-light fa-xmark text-xl hidden" id="menu-icon-close"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Menú Móvil Desplegable -->
+  <div id="mobile-menu" class="hidden md:hidden border-b border-slate-200 bg-white px-4 pt-2 pb-6 space-y-2 animate-fadeIn">
+    {navLinks.map(link => {
+      const isActive = currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href));
+      return (
+        <a
+          href={link.href}
+          class={`block px-3 py-2.5 rounded-lg text-base font-medium ${
+            isActive 
+              ? 'text-blue-600 bg-blue-50 font-semibold' 
+              : 'text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          {link.name}
+        </a>
+      );
+    })}
+    <div class="pt-4 border-t border-slate-100 flex flex-col gap-2.5">
+      <a
+        href="/clientes"
+        class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-amber-300 text-amber-700 font-semibold bg-amber-50/50"
+      >
+        <i class="fa-light fa-wallet"></i>
+        <span>Portal de Clientes / Pagos</span>
+      </a>
+      <a
+        href="https://itep.siapp.edu.pe"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-md"
+      >
+        <span>Ingresar al Sistema</span>
+        <i class="fa-light fa-arrow-right text-xs"></i>
+      </a>
+    </div>
+  </div>
+</header>
+
+<script>
+  const btn = document.getElementById('mobile-menu-button');
+  const menu = document.getElementById('mobile-menu');
+  const iconBars = document.getElementById('menu-icon-bars');
+  const iconClose = document.getElementById('menu-icon-close');
+
+  if (btn && menu && iconBars && iconClose) {
+    btn.addEventListener('click', () => {
+      menu.classList.toggle('hidden');
+      iconBars.classList.toggle('hidden');
+      iconClose.classList.toggle('hidden');
+    });
+  }
+</script>

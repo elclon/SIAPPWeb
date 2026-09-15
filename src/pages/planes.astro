@@ -1,0 +1,186 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const planes = [
+  {
+    name: 'Plan Académico',
+    tag: 'Colegios y Academias',
+    price: 'S/ 350',
+    period: '/ mes',
+    featured: false,
+    description: 'Ideal para instituciones pequeñas o en crecimiento que buscan ordenar sus matrículas y notas.',
+    features: [
+      'Hasta 500 alumnos activos',
+      'Gestión de matrículas y grupos',
+      'Registro de notas por criterios',
+      'Portal web para docentes y alumnos',
+      'Control básico de cuotas y recibos',
+      'Soporte técnico por correo y chat',
+      'Copias de seguridad automáticas'
+    ],
+    ctaText: 'Elegir Plan Académico',
+    ctaLink: '/contacto?plan=academico'
+  },
+  {
+    name: 'Plan Instituto Pro',
+    tag: 'Institutos Superiores y CETPROs',
+    price: 'S/ 650',
+    period: '/ mes',
+    featured: true,
+    description: 'Nuestra solución más demandada. Control integral de caja, asistencia biométrica y facturación SUNAT.',
+    features: [
+      'Hasta 2,500 alumnos activos',
+      'Todo lo del Plan Académico',
+      'Facturación Electrónica SUNAT ilimitada',
+      'Arqueo de cajas y múltiples cajeros',
+      'Control de asistencia con biométrico',
+      'Impresión de carnets y certificados',
+      'Integración con recaudación bancaria',
+      'Soporte prioritario por WhatsApp y llamada'
+    ],
+    ctaText: 'Elegir Plan Instituto Pro',
+    ctaLink: '/contacto?plan=instituto-pro'
+  },
+  {
+    name: 'Plan Enterprise',
+    tag: 'Universidades y Redes',
+    price: 'A medida',
+    period: '',
+    featured: false,
+    description: 'Para organizaciones con múltiples sedes que requieren personalización, base de datos dedicada y SLA garantizado.',
+    features: [
+      'Alumnos ilimitados y sedes múltiples',
+      'Todo lo del Plan Pro',
+      'Base de datos y servidor exclusivo',
+      'Integración API con Moodle, Zoom y Canvas',
+      'Módulo de streaming para clases virtuales',
+      'Personalización de marca (Whitelabel)',
+      'Capacitación presencial y virtual al personal',
+      'Gerente de cuenta técnico asignado 24/7'
+    ],
+    ctaText: 'Contactar a Ventas',
+    ctaLink: '/contacto?plan=enterprise'
+  }
+];
+
+const faqs = [
+  {
+    q: '¿Cómo se realiza el pago mensual de la suscripción de SIAPP?',
+    a: 'El día 1 de cada mes recibirás un correo electrónico con tu código de cuenta y un enlace seguro para pagar con tarjeta de crédito/débito, Yape, Plin o transferencia bancaria en nuestro Portal de Clientes.'
+  },
+  {
+    q: '¿El servicio se habilita de inmediato tras el pago?',
+    a: 'Sí, contamos con un sistema automatizado que procesa la confirmación de la pasarela y renueva la vigencia de tu servicio al instante.'
+  },
+  {
+    q: '¿Se requiere instalar algún servidor físico en mi institución?',
+    a: 'No es necesario. SIAPP puede funcionar 100% en la nube bajo alta disponibilidad, accesible desde cualquier navegador web. También ofrecemos modalidad On-Premise si tu institución cuenta con datacenter propio.'
+  },
+  {
+    q: '¿Ofrecen soporte y capacitación para el personal?',
+    a: 'Por supuesto. Todos nuestros planes incluyen capacitación guiada para el equipo directivo, secretaría académica y docentes, además de manuales y videotutoriales.'
+  }
+];
+---
+
+<Layout 
+  title="Planes y Tarifas | SIAPP Software Académico"
+  description="Conoce nuestros planes de suscripción transparentes y accesibles para colegios, institutos y universidades."
+>
+
+  <!-- HEADER -->
+  <section class="py-16 lg:py-20 bg-gradient-to-b from-blue-50/80 via-white to-slate-50 border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+      <span class="text-xs font-bold uppercase tracking-widest text-blue-600">Precios Transparentes</span>
+      <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 font-heading">
+        Planes diseñados para cada etapa de tu institución
+      </h1>
+      <p class="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto">
+        Sin costos ocultos ni sorpresas. Elige el plan que mejor se adapte al volumen de estudiantes y necesidades de tu centro educativo.
+      </p>
+    </div>
+  </section>
+
+  <!-- GRID DE PLANES -->
+  <section class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+      {planes.map(p => (
+        <div class={`rounded-3xl p-8 sm:p-10 flex flex-col justify-between transition-all duration-200 ${
+          p.featured 
+            ? 'bg-slate-900 text-white shadow-2xl shadow-blue-900/20 border-2 border-blue-500 relative lg:-translate-y-2' 
+            : 'bg-white text-slate-900 border border-slate-200 shadow-sm hover:shadow-md'
+        }`}>
+          
+          {p.featured && (
+            <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-blue-600 text-white text-xs font-bold uppercase tracking-widest shadow-md">
+              Más Recomendado
+            </div>
+          )}
+
+          <div class="space-y-6">
+            <div class="space-y-1.5">
+              <span class={`text-xs font-bold uppercase tracking-wider ${p.featured ? 'text-blue-400' : 'text-blue-600'}`}>
+                {p.tag}
+              </span>
+              <h3 class="text-2xl font-bold font-heading">{p.name}</h3>
+              <p class={`text-xs leading-relaxed ${p.featured ? 'text-slate-300' : 'text-slate-500'}`}>
+                {p.description}
+              </p>
+            </div>
+
+            <div class="pt-2 pb-4 border-b border-slate-100/20">
+              <div class="flex items-baseline gap-1">
+                <span class="text-4xl sm:text-5xl font-extrabold font-heading tracking-tight">{p.price}</span>
+                <span class={`text-sm ${p.featured ? 'text-slate-400' : 'text-slate-500'}`}>{p.period}</span>
+              </div>
+            </div>
+
+            <!-- Lista de Beneficios -->
+            <ul class="space-y-3 text-sm">
+              {p.features.map(f => (
+                <li class="flex items-start gap-2.5">
+                  <i class={`fa-solid fa-check mt-1 text-xs ${p.featured ? 'text-blue-400' : 'text-blue-600'}`}></i>
+                  <span class={p.featured ? 'text-slate-200' : 'text-slate-700'}>{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="pt-8">
+            <a
+              href={p.ctaLink}
+              class={`w-full py-3.5 px-6 rounded-xl font-bold text-center block text-sm transition-all ${
+                p.featured
+                  ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30'
+                  : 'bg-slate-900 hover:bg-slate-800 text-white'
+              }`}
+            >
+              {p.ctaText}
+            </a>
+          </div>
+
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- FAQS -->
+  <section class="py-16 bg-slate-100/70 border-t border-slate-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <div class="text-center space-y-2">
+        <span class="text-xs font-bold uppercase tracking-widest text-blue-600">Respuestas Claras</span>
+        <h2 class="text-3xl font-extrabold text-slate-900 font-heading">Preguntas Frecuentes</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {faqs.map(faq => (
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-2">
+            <h4 class="font-bold text-slate-900 text-base font-heading">{faq.q}</h4>
+            <p class="text-slate-600 text-sm leading-relaxed">{faq.a}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+</Layout>
