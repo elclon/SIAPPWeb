@@ -1,0 +1,21 @@
+---
+import { faqs } from './planesData';
+---
+
+<section class="py-16 bg-slate-100/70 border-t border-slate-200">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    <div class="text-center space-y-2">
+      <span class="text-xs font-bold uppercase tracking-widest text-blue-600">Respuestas Claras</span>
+      <h2 class="text-3xl font-extrabold text-slate-900 font-heading">Preguntas Frecuentes</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {faqs.map(faq => (
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-2">
+          <h4 class="font-bold text-slate-900 text-base font-heading">{faq.q}</h4>
+          <p class="text-slate-600 text-sm leading-relaxed">{faq.a}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

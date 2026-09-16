@@ -1,0 +1,22 @@
+---
+import GaleriaSistema from '../landing/GaleriaSistema.vue';
+---
+
+<section class="py-20 bg-slate-50 border-y border-slate-200/80">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <div class="text-center max-w-2xl mx-auto mb-12 space-y-3">
+      <span class="text-xs font-bold uppercase tracking-widest text-blue-600">Plataforma en Acción</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 font-heading">
+        Explora las Pantallas y Módulos de SIAPP
+      </h2>
+      <p class="text-slate-600 text-sm sm:text-base">
+        Una interfaz pensada para la velocidad administrativa, fluida y con toda la información crítica a un solo clic.
+      </p>
+    </div>
+
+    <!-- Componente Vue de Galería Interactiva con Pestañas y Visor -->
+    <GaleriaSistema client:visible />
+
+  </div>
+</section>
