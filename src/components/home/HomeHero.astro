@@ -79,7 +79,7 @@
       <div class="absolute -bottom-10 -left-10 w-72 h-72 bg-gradient-to-tr from-purple-600 to-indigo-600 rounded-full opacity-20 blur-3xl pointer-events-none -z-10"></div>
 
       <!-- MOCKUP DE LAPTOP PROFESIONAL -->
-      <div class="relative mx-auto rounded-t-3xl bg-slate-950 p-3 sm:p-4 shadow-2xl shadow-slate-900/30 border border-slate-800">
+      <div class="relative z-10 mx-auto rounded-t-3xl bg-slate-950 p-3 sm:p-4 shadow-2xl shadow-slate-900/30 border border-slate-800">
         
         <!-- Cámara Web y Notch Superior -->
         <div class="flex items-center justify-center pb-2.5 relative">
@@ -95,12 +95,12 @@
           <img
             src="/images/sistema/pantalla-principal.png"
             alt="SIAPP - Pantalla Principal del Sistema"
-            class="w-full h-full object-cover object-top"
+            class="w-full h-full object-cover object-top relative z-10"
             onerror="this.style.display='none'"
           />
 
           <!-- Fallback Interactivo de Alta Fidelidad de la Interfaz SIAPP (Ribbon + Módulos) -->
-          <div class="absolute inset-0 bg-slate-100 flex flex-col justify-between text-slate-800 select-none">
+          <div class="absolute inset-0 bg-slate-100 flex flex-col justify-between text-slate-800 select-none z-0">
             
             <!-- Barra de Título Superior de Windows -->
             <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white px-4 py-2 flex items-center justify-between text-xs">
@@ -174,43 +174,157 @@
 
       </div>
 
-      <!-- TARJETA FLOTANTE 1: FOTO DE ESTUDIANTES / DOCENTES (Tal como en siapp.edu.pe) -->
-      <div class="absolute top-10 sm:top-14 right-2 sm:-right-8 w-28 sm:w-44 rounded-2xl overflow-hidden shadow-2xl border-4 border-white transform rotate-3 hover:rotate-0 transition-transform duration-300 hidden md:block">
+      <!-- TARJETA FLOTANTE 1: COMUNIDAD Y ESTUDIANTES (+50,000 Alumnos) -->
+      <div class="absolute top-14 sm:top-24 md:top-28 -left-3 sm:-left-8 lg:-left-12 w-32 sm:w-44 bg-white rounded-2xl overflow-hidden shadow-2xl border-4 border-white transform -rotate-3 hover:rotate-0 hover:scale-105 transition-all duration-300 z-30 hidden sm:block">
         <img
           src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&q=80"
           alt="Estudiantes Universitarios"
-          class="w-full h-24 sm:h-32 object-cover"
+          class="w-full h-20 sm:h-28 object-cover"
         />
-        <div class="bg-white p-2 text-center">
-          <span class="block text-[10px] font-bold text-slate-800">+50,000 Alumnos</span>
-          <span class="block text-[8px] text-slate-400">Gestión Activa en Nube</span>
+        <div class="bg-white p-2.5 text-center">
+          <div class="flex items-center justify-center gap-1.5 mb-0.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-[11px] sm:text-xs font-black text-slate-800 tracking-tight">+50,000 Alumnos</span>
+          </div>
+          <span class="block text-[9px] sm:text-[10px] text-slate-500 font-medium">Gestión Activa en Nube</span>
         </div>
       </div>
 
-      <!-- TARJETA FLOTANTE 2: SMARTPHONE CON EL PORTAL MÓVIL DEL ALUMNO -->
-      <div class="absolute -bottom-8 -right-4 sm:-right-10 w-44 sm:w-56 bg-slate-950 p-2.5 rounded-3xl shadow-2xl border-2 border-slate-800 transform -rotate-3 hover:rotate-0 transition-transform duration-300 hidden sm:block">
-        <div class="rounded-2xl overflow-hidden bg-white p-3 space-y-2 border border-slate-200">
-          <div class="flex items-center justify-between pb-1.5 border-b border-slate-100">
-            <div class="flex items-center gap-1.5">
-              <i class="fa-solid fa-graduation-cap text-blue-600 text-sm"></i>
-              <span class="font-black text-xs text-slate-900">siapp móvil</span>
-            </div>
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          </div>
-          <div class="space-y-1.5 text-[10px]">
-            <div class="p-1.5 bg-blue-50 rounded-lg text-blue-800 font-semibold">
-              Bienvenido, Carlos Zegarra
-            </div>
-            <div class="flex justify-between text-slate-600 text-[9px] py-0.5">
-              <span>Promedio Ponderado:</span>
-              <span class="font-bold text-emerald-600">17.8</span>
-            </div>
-            <div class="flex justify-between text-slate-600 text-[9px] py-0.5">
-              <span>Estado de Pago:</span>
-              <span class="font-bold text-blue-600">Al Día</span>
-            </div>
-          </div>
+      <!-- TARJETA FLOTANTE 2: HOMOLOGACIÓN SUNAT & COBRANZAS BANCARIAS -->
+      <div class="absolute -bottom-6 sm:bottom-8 -left-3 sm:-left-6 lg:-left-10 bg-white/95 backdrop-blur-md rounded-2xl p-3 sm:p-4 shadow-2xl border border-slate-100 flex items-center gap-3 transform rotate-2 hover:rotate-0 hover:scale-105 transition-all duration-300 z-30 max-w-[260px] sm:max-w-xs">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+          <i class="fa-sharp fa-solid fa-shield-check text-xl sm:text-2xl text-emerald-600"></i>
         </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs sm:text-sm font-bold text-slate-900 leading-tight">SUNAT & Cobranzas</span>
+            <span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-bold">100% OK</span>
+          </div>
+          <span class="block text-[10px] sm:text-[11px] text-slate-500 mt-0.5 leading-snug">Facturación y Recaudación Bancaria en Tiempo Real</span>
+        </div>
+      </div>
+
+      <!-- MOCKUP DE CELULAR (SMARTPHONE) AL COSTADO DE LA PANTALLA PRINCIPAL -->
+      <div class="absolute -bottom-10 sm:-bottom-12 md:-bottom-14 -right-3 sm:-right-6 md:-right-10 lg:-right-12 w-44 sm:w-52 md:w-60 lg:w-64 z-20 transform rotate-2 hover:rotate-0 transition-transform duration-300">
+        
+        <!-- Chasis del Smartphone (Titanio oscuro con bisel pulido y botones laterales) -->
+        <div class="relative bg-slate-950 p-2.5 sm:p-3 rounded-[2.5rem] sm:rounded-[3rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] border-4 border-slate-800 ring-1 ring-white/15">
+          
+          <!-- Botón de Encendido Lateral Derecho -->
+          <div class="absolute -right-1.5 top-20 w-1 h-10 bg-slate-700 rounded-r-md"></div>
+          <!-- Botones de Volumen Lateral Izquierdo -->
+          <div class="absolute -left-1.5 top-16 w-1 h-8 bg-slate-700 rounded-l-md"></div>
+          <div class="absolute -left-1.5 top-26 w-1 h-8 bg-slate-700 rounded-l-md"></div>
+
+          <!-- Pantalla del Celular -->
+          <div class="relative rounded-[2rem] sm:rounded-[2.4rem] overflow-hidden bg-slate-900 aspect-[9/19] flex flex-col justify-between select-none border border-slate-800/80">
+            
+            <!-- Imagen real si el usuario coloca: public/images/sistema/pantalla-movil.png -->
+            <img
+              src="/images/sistema/pantalla-movil.png"
+              alt="SIAPP Móvil - App del Estudiante"
+              class="w-full h-full object-cover object-top relative z-10"
+              onerror="this.style.display='none'"
+            />
+
+            <!-- Fallback Interactivo de la App Móvil de Alumnos / Docentes (Si no hay PNG cargado) -->
+            <div class="absolute inset-0 bg-slate-50 flex flex-col justify-between text-slate-800 z-0 p-2.5 sm:p-3">
+              
+              <!-- Dynamic Island / Cámara Frontal + Barra de Estado -->
+              <div class="flex items-center justify-between pt-0.5 pb-1">
+                <span class="text-[9px] sm:text-[10px] font-bold text-slate-900 font-mono">09:41</span>
+                <!-- Dynamic Island Capsule -->
+                <div class="w-14 sm:w-18 h-3 sm:h-3.5 bg-black rounded-full flex items-center justify-end px-1.5 gap-1">
+                  <span class="w-1 h-1 rounded-full bg-blue-950"></span>
+                  <span class="w-1 h-1 rounded-full bg-slate-800"></span>
+                </div>
+                <!-- Iconos de Estado (WiFi, Batería) -->
+                <div class="flex items-center gap-1 text-[8px] sm:text-[9px] text-slate-700">
+                  <i class="fa-solid fa-wifi"></i>
+                  <i class="fa-solid fa-battery-full text-emerald-600"></i>
+                </div>
+              </div>
+
+              <!-- Cabecera de la App SIAPP Móvil -->
+              <div class="flex items-center justify-between py-1 border-b border-slate-200">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs">
+                    <i class="fa-sharp fa-solid fa-graduation-cap text-[10px]"></i>
+                  </div>
+                  <div>
+                    <span class="block text-[10px] sm:text-[11px] font-black tracking-tight text-slate-900">SIAPP Móvil</span>
+                    <span class="block text-[7px] sm:text-[8px] text-slate-400 font-semibold -mt-0.5">Portal Estudiante</span>
+                  </div>
+                </div>
+                <div class="relative">
+                  <i class="fa-light fa-bell text-slate-600 text-xs"></i>
+                  <span class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                </div>
+              </div>
+
+              <!-- Contenido Principal de la App Móvil -->
+              <div class="space-y-1.5 sm:space-y-2 py-1 flex-1 flex flex-col justify-center">
+                
+                <!-- Card de Saludo y Alumno -->
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-2 sm:p-2.5 text-white shadow-sm">
+                  <span class="text-[8px] sm:text-[9px] text-blue-100 block">Bienvenido,</span>
+                  <span class="text-[10px] sm:text-xs font-bold block leading-tight">Carlos Zegarra</span>
+                  <div class="flex items-center justify-between mt-1 pt-1 border-t border-white/20 text-[7px] sm:text-[8px]">
+                    <span class="text-blue-100">Desarrollo Web</span>
+                    <span class="bg-white/20 px-1.5 py-0.5 rounded font-mono font-semibold">IV Ciclo</span>
+                  </div>
+                </div>
+
+                <!-- KPIs Rápidos: Promedio y Pagos -->
+                <div class="grid grid-cols-2 gap-1.5">
+                  <div class="bg-white rounded-lg p-1.5 border border-slate-200 shadow-xs text-center">
+                    <span class="text-[7px] text-slate-500 block">Promedio</span>
+                    <span class="text-xs sm:text-sm font-black text-emerald-600">17.8</span>
+                    <span class="text-[6px] text-emerald-700 bg-emerald-50 px-1 rounded block">Puesto 1</span>
+                  </div>
+                  <div class="bg-white rounded-lg p-1.5 border border-slate-200 shadow-xs text-center">
+                    <span class="text-[7px] text-slate-500 block">Cuota Mensual</span>
+                    <span class="text-xs sm:text-sm font-black text-blue-600">Al Día</span>
+                    <span class="text-[6px] text-blue-700 bg-blue-50 px-1 rounded block">Pagado</span>
+                  </div>
+                </div>
+
+                <!-- Accesos Directos Táctiles -->
+                <div class="grid grid-cols-3 gap-1 pt-0.5 text-center">
+                  <div class="p-1 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700">
+                    <i class="fa-light fa-calendar-clock text-blue-600 text-xs block"></i>
+                    <span class="text-[7px] font-semibold mt-0.5 block">Horario</span>
+                  </div>
+                  <div class="p-1 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700">
+                    <i class="fa-light fa-file-certificate text-emerald-600 text-xs block"></i>
+                    <span class="text-[7px] font-semibold mt-0.5 block">Notas</span>
+                  </div>
+                  <div class="p-1 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-700">
+                    <i class="fa-light fa-qrcode text-purple-600 text-xs block"></i>
+                    <span class="text-[7px] font-semibold mt-0.5 block">QR</span>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Barra de Navegación Inferior Móvil -->
+              <div class="pt-1 border-t border-slate-200">
+                <div class="flex items-center justify-around text-slate-400 text-[11px] pb-1">
+                  <i class="fa-solid fa-house text-blue-600"></i>
+                  <i class="fa-light fa-book-bookmark"></i>
+                  <i class="fa-light fa-receipt"></i>
+                  <i class="fa-light fa-user"></i>
+                </div>
+                <!-- Barra Indicadora de Inicio (Home Indicator Pill) -->
+                <div class="w-14 h-1 bg-slate-300 rounded-full mx-auto mt-0.5"></div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
 
     </div>

@@ -82,10 +82,20 @@ const modulos = [
 ];
 
 const moduloSeleccionado = ref(modulos[0]);
+const imagenCargada = ref(true);
 
 const seleccionarModulo = (m) => {
   moduloActivo.value = m.id;
   moduloSeleccionado.value = m;
+  imagenCargada.value = true;
+};
+
+const onImageError = () => {
+  imagenCargada.value = false;
+};
+
+const onImageLoad = () => {
+  imagenCargada.value = true;
 };
 </script>
 
@@ -144,14 +154,20 @@ const seleccionarModulo = (m) => {
             
             <!-- Imagen física del usuario si existe en public/images/sistema/ -->
             <img
+              :key="moduloSeleccionado.archivoImagen"
               :src="moduloSeleccionado.archivoImagen"
               :alt="moduloSeleccionado.titulo"
-              class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.01]"
-              @error="(e) => e.target.style.display = 'none'"
+              v-show="imagenCargada"
+              class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.01] relative z-10"
+              @load="onImageLoad"
+              @error="onImageError"
             />
 
             <!-- Fallback Gráfico de Alta Fidelidad en caso aún no hayan pegado el archivo PNG -->
-            <div class="absolute inset-0 p-5 flex flex-col justify-between bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white select-none pointer-events-none">
+            <div
+              v-if="!imagenCargada"
+              class="absolute inset-0 p-5 flex flex-col justify-between bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white select-none pointer-events-none z-0"
+            >
               
               <!-- Ribbon Menu Superior Simulado -->
               <div class="space-y-3">
