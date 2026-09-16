@@ -7,8 +7,8 @@ import { planes } from './planesData';
     {planes.map(p => (
       <div class={`rounded-3xl p-8 sm:p-10 flex flex-col justify-between transition-all duration-200 ${
         p.featured 
-          ? 'bg-slate-900 text-white shadow-2xl shadow-blue-900/20 border-2 border-blue-500 relative lg:-translate-y-2' 
-          : 'bg-white text-slate-900 border border-slate-200 shadow-sm hover:shadow-md'
+          ? 'bg-slate-900 dark:bg-slate-900 text-white shadow-2xl shadow-blue-900/20 border-2 border-blue-500 relative lg:-translate-y-2' 
+          : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md'
       }`}>
         
         {p.featured && (
@@ -19,19 +19,19 @@ import { planes } from './planesData';
 
         <div class="space-y-6">
           <div class="space-y-1.5">
-            <span class={`text-xs font-bold uppercase tracking-wider ${p.featured ? 'text-blue-400' : 'text-blue-600'}`}>
+            <span class={`text-xs font-bold uppercase tracking-wider ${p.featured ? 'text-blue-400' : 'text-blue-600 dark:text-blue-400'}`}>
               {p.tag}
             </span>
             <h3 class="text-2xl font-bold font-heading">{p.name}</h3>
-            <p class={`text-xs leading-relaxed ${p.featured ? 'text-slate-300' : 'text-slate-500'}`}>
+            <p class={`text-xs leading-relaxed ${p.featured ? 'text-slate-300' : 'text-slate-500 dark:text-slate-400'}`}>
               {p.description}
             </p>
           </div>
 
-          <div class="pt-2 pb-4 border-b border-slate-100/20">
+          <div class="pt-2 pb-4 border-b border-slate-100/20 dark:border-slate-800">
             <div class="flex items-baseline gap-1">
               <span class="text-4xl sm:text-5xl font-extrabold font-heading tracking-tight">{p.price}</span>
-              <span class={`text-sm ${p.featured ? 'text-slate-400' : 'text-slate-500'}`}>{p.period}</span>
+              <span class={`text-sm ${p.featured ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'}`}>{p.period}</span>
             </div>
           </div>
 
@@ -39,8 +39,8 @@ import { planes } from './planesData';
           <ul class="space-y-3 text-sm">
             {p.features.map(f => (
               <li class="flex items-start gap-2.5">
-                <i class={`fa-solid fa-check mt-1 text-xs ${p.featured ? 'text-blue-400' : 'text-blue-600'}`}></i>
-                <span class={p.featured ? 'text-slate-200' : 'text-slate-700'}>{f}</span>
+                <i class={`fa-solid fa-check mt-1 text-xs ${p.featured ? 'text-blue-400' : 'text-blue-600 dark:text-blue-400'}`}></i>
+                <span class={p.featured ? 'text-slate-200' : 'text-slate-700 dark:text-slate-300'}>{f}</span>
               </li>
             ))}
           </ul>
@@ -52,7 +52,7 @@ import { planes } from './planesData';
             class={`w-full py-3.5 px-6 rounded-xl font-bold text-center block text-sm transition-all ${
               p.featured
                 ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30'
-                : 'bg-slate-900 hover:bg-slate-800 text-white'
+                : 'bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-blue-600 text-white'
             }`}
           >
             {p.ctaText}

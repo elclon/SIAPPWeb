@@ -38,8 +38,26 @@ const {
     <link rel="stylesheet" href="/fontawesome/css/light.min.css" />
     <link rel="stylesheet" href="/fontawesome/css/brands.min.css" />
     <link rel="stylesheet" href="/fontawesome/css/duotone.min.css" />
+
+    <!-- Anti-FOUC Dark Mode Theme Script -->
+    <script is:inline>
+      const theme = (() => {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+          return localStorage.getItem('theme');
+        }
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'dark';
+        }
+        return 'light';
+      })();
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
   </head>
-  <body class="bg-slate-50 text-slate-900 font-['Inter',sans-serif] min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+  <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-['Inter',sans-serif] min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white transition-colors duration-200">
     <!-- Navbar Global -->
     <Navbar />
 

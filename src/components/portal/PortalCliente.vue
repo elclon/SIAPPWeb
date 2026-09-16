@@ -221,16 +221,16 @@ const copiarTexto = (texto, idNotif) => {
   <div class="space-y-8">
     
     <!-- BARRA DE BÚSQUEDA DE CUENTA -->
-    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-200/80 p-6 md:p-8">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/60 dark:shadow-none border border-slate-200/80 dark:border-slate-800 p-6 md:p-8 transition-colors duration-200">
       <div class="max-w-2xl mx-auto text-center space-y-3 mb-6">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold">
-          <i class="fa-light fa-shield-check text-blue-600"></i>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-semibold">
+          <i class="fa-light fa-shield-check text-blue-600 dark:text-blue-400"></i>
           <span>Autoservicio Seguro de Pagos SIAPP</span>
         </div>
-        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 font-heading">
+        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-heading">
           Consulta y Paga tu Suscripción
         </h2>
-        <p class="text-sm sm:text-base text-slate-600">
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400">
           Ingresa el código de cuenta de tu institución (enviado a tu correo o WhatsApp) o tu número de RUC para consultar tu estado y renovar el servicio.
         </p>
       </div>
@@ -245,7 +245,7 @@ const copiarTexto = (texto, idNotif) => {
             v-model="codigoInput"
             type="text"
             placeholder="Ej: 9999 o 20549281921"
-            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-semibold text-slate-900 placeholder:text-slate-400 text-base transition-all"
+            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-base transition-all"
           />
         </div>
         <button
@@ -258,33 +258,33 @@ const copiarTexto = (texto, idNotif) => {
       </form>
 
       <!-- Chips de cuentas de demostración -->
-      <div class="max-w-xl mx-auto mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
+      <div class="max-w-xl mx-auto mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
         <span class="font-medium">Cuentas de prueba rápida:</span>
         <button
           type="button"
           @click="buscarCuenta('9999')"
-          class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 transition-colors font-semibold text-slate-700"
+          class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/60 hover:text-blue-700 dark:hover:text-blue-300 border border-slate-200 dark:border-slate-700 transition-colors font-semibold text-slate-700 dark:text-slate-300"
         >
           9999 (ITEP - Pendiente)
         </button>
         <button
           type="button"
           @click="buscarCuenta('8850')"
-          class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 transition-colors font-semibold text-slate-700"
+          class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/60 hover:text-blue-700 dark:hover:text-blue-300 border border-slate-200 dark:border-slate-700 transition-colors font-semibold text-slate-700 dark:text-slate-300"
         >
           8850 (San Marcos Tech)
         </button>
         <button
           type="button"
           @click="buscarCuenta('1200')"
-          class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 transition-colors font-semibold text-slate-700"
+          class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 border border-slate-200 dark:border-slate-700 transition-colors font-semibold text-slate-700 dark:text-slate-300"
         >
           1200 (Cambridge - Al Día)
         </button>
       </div>
 
       <!-- Alerta de Error si no se encuentra -->
-      <div v-if="errorBusqueda" class="max-w-xl mx-auto mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
+      <div v-if="errorBusqueda" class="max-w-xl mx-auto mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 text-red-700 dark:text-red-300 text-xs font-medium flex items-center gap-2">
         <i class="fa-solid fa-circle-exclamation text-base text-red-500"></i>
         <span>{{ errorBusqueda }}</span>
       </div>
@@ -294,8 +294,8 @@ const copiarTexto = (texto, idNotif) => {
     <div v-if="clienteActual" class="space-y-6">
 
       <!-- CASO 1: PAGO RECIÉN COMPLETADO CON ÉXITO -->
-      <div v-if="pagoCompletado && comprobantePago" class="bg-white rounded-2xl shadow-xl border border-emerald-200 p-6 sm:p-10 overflow-hidden relative">
-        <div class="absolute top-0 right-0 transform translate-x-8 -translate-y-8 w-48 h-48 bg-emerald-100 rounded-full opacity-50 blur-2xl pointer-events-none"></div>
+      <div v-if="pagoCompletado && comprobantePago" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-emerald-200 dark:border-emerald-800 p-6 sm:p-10 overflow-hidden relative">
+        <div class="absolute top-0 right-0 transform translate-x-8 -translate-y-8 w-48 h-48 bg-emerald-100 dark:bg-emerald-950/40 rounded-full opacity-50 blur-2xl pointer-events-none"></div>
         
         <div class="text-center max-w-xl mx-auto space-y-4">
           <div class="w-16 h-16 rounded-2xl bg-emerald-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/30 text-3xl animate-bounce">
@@ -303,40 +303,40 @@ const copiarTexto = (texto, idNotif) => {
           </div>
 
           <div class="space-y-1">
-            <span class="text-xs uppercase font-bold tracking-wider text-emerald-600">Transacción Aprobada</span>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-heading">
+            <span class="text-xs uppercase font-bold tracking-wider text-emerald-600 dark:text-emerald-400">Transacción Aprobada</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-heading">
               ¡Pago Exitoso! Tu SIAPP está Habilitado
             </h2>
-            <p class="text-sm text-slate-600">
+            <p class="text-sm text-slate-600 dark:text-slate-400">
               Se ha renovado tu suscripción automáticamente. El acceso al sistema y facturación SUNAT se encuentran 100% operativos.
             </p>
           </div>
 
           <!-- Cuadro de Resumen de Pago -->
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left text-xs sm:text-sm space-y-2">
-            <div class="flex justify-between py-1 border-b border-slate-200">
-              <span class="text-slate-500">Institución:</span>
-              <span class="font-bold text-slate-800">{{ comprobantePago.institucion }}</span>
+          <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-left text-xs sm:text-sm space-y-2">
+            <div class="flex justify-between py-1 border-b border-slate-200 dark:border-slate-700">
+              <span class="text-slate-500 dark:text-slate-400">Institución:</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ comprobantePago.institucion }}</span>
             </div>
-            <div class="flex justify-between py-1 border-b border-slate-200">
-              <span class="text-slate-500">Recibo / Liquidación:</span>
-              <span class="font-mono font-bold text-slate-800">{{ comprobantePago.recibo }}</span>
+            <div class="flex justify-between py-1 border-b border-slate-200 dark:border-slate-700">
+              <span class="text-slate-500 dark:text-slate-400">Recibo / Liquidación:</span>
+              <span class="font-mono font-bold text-slate-800 dark:text-slate-200">{{ comprobantePago.recibo }}</span>
             </div>
-            <div class="flex justify-between py-1 border-b border-slate-200">
-              <span class="text-slate-500">Código de Autorización:</span>
-              <span class="font-mono font-bold text-emerald-700">{{ comprobantePago.authCode }}</span>
+            <div class="flex justify-between py-1 border-b border-slate-200 dark:border-slate-700">
+              <span class="text-slate-500 dark:text-slate-400">Código de Autorización:</span>
+              <span class="font-mono font-bold text-emerald-700 dark:text-emerald-400">{{ comprobantePago.authCode }}</span>
             </div>
-            <div class="flex justify-between py-1 border-b border-slate-200">
-              <span class="text-slate-500">Medio de Pago:</span>
-              <span class="font-semibold text-slate-800">{{ comprobantePago.metodo }}</span>
+            <div class="flex justify-between py-1 border-b border-slate-200 dark:border-slate-700">
+              <span class="text-slate-500 dark:text-slate-400">Medio de Pago:</span>
+              <span class="font-semibold text-slate-800 dark:text-slate-200">{{ comprobantePago.metodo }}</span>
             </div>
-            <div class="flex justify-between py-1 border-b border-slate-200">
-              <span class="text-slate-500">Monto Cobrado:</span>
-              <span class="font-extrabold text-slate-900 text-base">{{ comprobantePago.moneda }} {{ comprobantePago.monto.toFixed(2) }}</span>
+            <div class="flex justify-between py-1 border-b border-slate-200 dark:border-slate-700">
+              <span class="text-slate-500 dark:text-slate-400">Monto Cobrado:</span>
+              <span class="font-extrabold text-slate-900 dark:text-white text-base">{{ comprobantePago.moneda }} {{ comprobantePago.monto.toFixed(2) }}</span>
             </div>
             <div class="flex justify-between py-1">
-              <span class="text-slate-500">Nueva Fecha de Vencimiento:</span>
-              <span class="font-bold text-emerald-600">16 de Octubre de 2026</span>
+              <span class="text-slate-500 dark:text-slate-400">Nueva Fecha de Vencimiento:</span>
+              <span class="font-bold text-emerald-600 dark:text-emerald-400">16 de Octubre de 2026</span>
             </div>
           </div>
 
@@ -354,7 +354,7 @@ const copiarTexto = (texto, idNotif) => {
             <button
               type="button"
               @click="nuevaConsulta"
-              class="px-5 py-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-all"
+              class="px-5 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-all"
             >
               Consultar Otra Cuenta
             </button>
@@ -369,11 +369,11 @@ const copiarTexto = (texto, idNotif) => {
         <div class="lg:col-span-7 space-y-6">
           
           <!-- Tarjeta de la Institución -->
-          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100">
+          <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
               <div>
                 <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cuenta N° {{ clienteActual.cuentaID }}</span>
-                <h3 class="text-xl font-bold text-slate-900 font-heading">{{ clienteActual.institucion }}</h3>
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white font-heading">{{ clienteActual.institucion }}</h3>
               </div>
               <div class="flex items-center gap-2">
                 <span :class="['px-3 py-1 rounded-full text-xs font-bold border', clienteActual.planBadgeColor]">
@@ -389,34 +389,34 @@ const copiarTexto = (texto, idNotif) => {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
               <div>
                 <span class="text-slate-400 block text-xs">RUC:</span>
-                <span class="font-semibold text-slate-800">{{ clienteActual.ruc }}</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ clienteActual.ruc }}</span>
               </div>
               <div>
                 <span class="text-slate-400 block text-xs">Subdominio / ERP:</span>
-                <a :href="clienteActual.urlSistema" target="_blank" class="font-semibold text-blue-600 hover:underline flex items-center gap-1">
+                <a :href="clienteActual.urlSistema" target="_blank" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
                   <span>{{ clienteActual.subdominio }}</span>
                   <i class="fa-light fa-external-link text-xs"></i>
                 </a>
               </div>
               <div>
                 <span class="text-slate-400 block text-xs">Responsable:</span>
-                <span class="font-semibold text-slate-800">{{ clienteActual.responsable }}</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ clienteActual.responsable }}</span>
               </div>
               <div>
                 <span class="text-slate-400 block text-xs">Fecha Límite de Pago:</span>
-                <span class="font-bold text-red-600">{{ clienteActual.fechaVencimiento }} (en {{ clienteActual.diasRestantes }} días)</span>
+                <span class="font-bold text-red-600 dark:text-red-400">{{ clienteActual.fechaVencimiento }} (en {{ clienteActual.diasRestantes }} días)</span>
               </div>
             </div>
           </div>
 
           <!-- Desglose de Facturación / Recibo -->
-          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div class="flex items-center gap-2">
-                <i class="fa-light fa-file-invoice text-blue-600 text-lg"></i>
-                <h4 class="font-bold text-slate-900">Liquidación Mensual: {{ clienteActual.reciboNumero }}</h4>
+                <i class="fa-light fa-file-invoice text-blue-600 dark:text-blue-400 text-lg"></i>
+                <h4 class="font-bold text-slate-900 dark:text-white">Liquidación Mensual: {{ clienteActual.reciboNumero }}</h4>
               </div>
-              <span class="text-xs font-medium text-slate-500">Período: {{ clienteActual.periodo }}</span>
+              <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Período: {{ clienteActual.periodo }}</span>
             </div>
 
             <!-- Tabla de Ítems -->
@@ -424,13 +424,13 @@ const copiarTexto = (texto, idNotif) => {
               <div
                 v-for="(item, idx) in clienteActual.items"
                 :key="idx"
-                class="flex items-center justify-between py-2 border-b border-slate-50 text-xs sm:text-sm"
+                class="flex items-center justify-between py-2 border-b border-slate-50 dark:border-slate-800/60 text-xs sm:text-sm"
               >
-                <div class="flex items-center gap-2 text-slate-700">
+                <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                   <i class="fa-solid fa-check text-emerald-500 text-xs"></i>
                   <span>{{ item.descripcion }}</span>
                 </div>
-                <div class="font-semibold text-slate-900 whitespace-nowrap">
+                <div class="font-semibold text-slate-900 dark:text-white whitespace-nowrap">
                   {{ clienteActual.moneda }} {{ item.monto.toFixed(2) }}
                 </div>
               </div>
@@ -438,22 +438,22 @@ const copiarTexto = (texto, idNotif) => {
 
             <!-- Totales -->
             <div class="pt-2 space-y-1.5 text-xs sm:text-sm">
-              <div class="flex justify-between text-slate-500">
+              <div class="flex justify-between text-slate-500 dark:text-slate-400">
                 <span>Subtotal (Base Imponible):</span>
                 <span>{{ clienteActual.moneda }} {{ clienteActual.subtotal.toFixed(2) }}</span>
               </div>
-              <div class="flex justify-between text-slate-500">
+              <div class="flex justify-between text-slate-500 dark:text-slate-400">
                 <span>I.G.V. (18%):</span>
                 <span>{{ clienteActual.moneda }} {{ clienteActual.igv.toFixed(2) }}</span>
               </div>
-              <div class="flex justify-between text-base sm:text-lg font-extrabold text-slate-900 pt-2 border-t border-slate-200">
+              <div class="flex justify-between text-base sm:text-lg font-extrabold text-slate-900 dark:text-white pt-2 border-t border-slate-200 dark:border-slate-800">
                 <span>Total a Pagar:</span>
-                <span class="text-blue-600 font-heading">{{ clienteActual.moneda }} {{ clienteActual.total.toFixed(2) }}</span>
+                <span class="text-blue-600 dark:text-blue-400 font-heading">{{ clienteActual.moneda }} {{ clienteActual.total.toFixed(2) }}</span>
               </div>
             </div>
 
-            <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-xs flex items-start gap-2">
-              <i class="fa-light fa-info-circle text-base text-amber-600 mt-0.5"></i>
+            <div class="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 text-xs flex items-start gap-2">
+              <i class="fa-light fa-info-circle text-base text-amber-600 dark:text-amber-400 mt-0.5"></i>
               <div>
                 <strong>Activación en Tiempo Real:</strong> Al confirmar el pago a través de cualquiera de nuestros canales, la licencia de su institución se renovará automáticamente sin necesidad de enviar comprobantes manuales.
               </div>
@@ -464,22 +464,22 @@ const copiarTexto = (texto, idNotif) => {
 
         <!-- COLUMNA DERECHA: PASARELA DE PAGO INTERACTIVA -->
         <div class="lg:col-span-5 space-y-6">
-          <div class="bg-white rounded-2xl shadow-xl border border-blue-200/80 p-6 space-y-5 sticky top-28">
+          <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-blue-200/80 dark:border-slate-800 p-6 space-y-5 sticky top-28">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h4 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                <i class="fa-light fa-lock-keyhole text-blue-600"></i>
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h4 class="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
+                <i class="fa-light fa-lock-keyhole text-blue-600 dark:text-blue-400"></i>
                 <span>Selecciona Medio de Pago</span>
               </h4>
               <span class="text-xs text-slate-400 font-semibold">SSL 256-bit Seguro</span>
             </div>
 
             <!-- Tabs de Métodos de Pago -->
-            <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl">
+            <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
               <button
                 type="button"
                 @click="metodoPago = 'tarjeta'"
-                :class="['py-2 px-1 text-center rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1', metodoPago === 'tarjeta' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900']"
+                :class="['py-2 px-1 text-center rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1', metodoPago === 'tarjeta' ? 'bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white']"
               >
                 <i class="fa-light fa-credit-card text-base"></i>
                 <span>Tarjeta</span>
@@ -488,7 +488,7 @@ const copiarTexto = (texto, idNotif) => {
               <button
                 type="button"
                 @click="metodoPago = 'yape'"
-                :class="['py-2 px-1 text-center rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1', metodoPago === 'yape' ? 'bg-white text-purple-700 shadow-xs' : 'text-slate-600 hover:text-slate-900']"
+                :class="['py-2 px-1 text-center rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1', metodoPago === 'yape' ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white']"
               >
                 <i class="fa-light fa-mobile-screen-button text-base"></i>
                 <span>Yape / Plin</span>
@@ -497,7 +497,7 @@ const copiarTexto = (texto, idNotif) => {
               <button
                 type="button"
                 @click="metodoPago = 'transferencia'"
-                :class="['py-2 px-1 text-center rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1', metodoPago === 'transferencia' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900']"
+                :class="['py-2 px-1 text-center rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1', metodoPago === 'transferencia' ? 'bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white']"
               >
                 <i class="fa-light fa-building-columns text-base"></i>
                 <span>Banco BCP</span>
@@ -530,13 +530,13 @@ const copiarTexto = (texto, idNotif) => {
               <!-- Inputs de Tarjeta -->
               <div class="space-y-3 text-xs">
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Número de Tarjeta:</label>
+                  <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Número de Tarjeta:</label>
                   <div class="relative">
                     <input
                       v-model="formTarjeta.numero"
                       type="text"
                       maxlength="19"
-                      class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
+                      class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
                     />
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center gap-1 text-slate-400">
                       <i class="fa-brands fa-cc-visa text-lg"></i>
@@ -547,33 +547,33 @@ const copiarTexto = (texto, idNotif) => {
 
                 <div class="grid grid-cols-2 gap-2">
                   <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Expiración (MM/AA):</label>
+                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Expiración (MM/AA):</label>
                     <input
                       v-model="formTarjeta.exp"
                       type="text"
                       placeholder="MM/AA"
                       maxlength="5"
-                      class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono text-center"
+                      class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono text-center"
                     />
                   </div>
                   <div>
-                    <label class="block font-semibold text-slate-700 mb-1">CVV / CVC:</label>
+                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">CVV / CVC:</label>
                     <input
                       v-model="formTarjeta.cvv"
                       type="password"
                       placeholder="•••"
                       maxlength="4"
-                      class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono text-center"
+                      class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono text-center"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Nombre en la Tarjeta:</label>
+                  <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre en la Tarjeta:</label>
                   <input
                     v-model="formTarjeta.nombre"
                     type="text"
-                    class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase"
+                    class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase"
                   />
                 </div>
               </div>
@@ -581,14 +581,14 @@ const copiarTexto = (texto, idNotif) => {
 
             <!-- PESTAÑA 2: YAPE / PLIN -->
             <div v-else-if="metodoPago === 'yape'" class="space-y-4 text-center">
-              <div class="p-4 rounded-xl bg-purple-50 border border-purple-200 space-y-3">
+              <div class="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/60 space-y-3">
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-600 text-white font-bold text-xs">
                   <i class="fa-solid fa-qrcode"></i>
                   <span>Código QR Yape Oficial</span>
                 </div>
                 
                 <!-- QR Visual Simulado -->
-                <div class="w-40 h-40 mx-auto bg-white p-2 rounded-xl shadow-sm border border-purple-200 flex flex-col items-center justify-center relative">
+                <div class="w-40 h-40 mx-auto bg-white p-2 rounded-xl shadow-sm border border-purple-200 dark:border-purple-800 flex flex-col items-center justify-center relative">
                   <div class="w-full h-full bg-slate-900 rounded-lg flex items-center justify-center text-white text-center p-2">
                     <div class="space-y-1">
                       <i class="fa-solid fa-qrcode text-5xl"></i>
@@ -598,75 +598,75 @@ const copiarTexto = (texto, idNotif) => {
                 </div>
 
                 <div class="text-xs space-y-1">
-                  <div class="text-slate-600">Escanea desde tu app Yape o transfiere al número:</div>
-                  <div class="text-base font-extrabold text-purple-900 font-mono tracking-wider">987 654 321</div>
-                  <div class="text-[11px] text-slate-500 font-medium">Titular: SIAPP SOLUCIONES EDUCATIVAS SAC</div>
+                  <div class="text-slate-600 dark:text-slate-400">Escanea desde tu app Yape o transfiere al número:</div>
+                  <div class="text-base font-extrabold text-purple-900 dark:text-purple-300 font-mono tracking-wider">987 654 321</div>
+                  <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Titular: SIAPP SOLUCIONES EDUCATIVAS SAC</div>
                 </div>
               </div>
 
               <div class="text-left text-xs space-y-1">
-                <label class="block font-semibold text-slate-700">Código de Aprobación de Yape (6 dígitos):</label>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300">Código de Aprobación de Yape (6 dígitos):</label>
                 <input
                   v-model="formYape.codigoAprobacion"
                   type="text"
                   placeholder="Ej: 782910"
                   maxlength="8"
-                  class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:outline-none font-mono text-center text-sm font-bold tracking-widest"
+                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none font-mono text-center text-sm font-bold tracking-widest"
                 />
               </div>
             </div>
 
             <!-- PESTAÑA 3: TRANSFERENCIA BANCARIA BCP -->
             <div v-else class="space-y-4 text-xs">
-              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3">
                 <div class="flex items-center justify-between">
-                  <span class="font-bold text-slate-900 text-sm">Banco de Crédito del Perú (BCP)</span>
-                  <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold text-[10px]">Soles (S/)</span>
+                  <span class="font-bold text-slate-900 dark:text-white text-sm">Banco de Crédito del Perú (BCP)</span>
+                  <span class="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 font-bold text-[10px]">Soles (S/)</span>
                 </div>
 
                 <div class="space-y-2">
-                  <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-200">
+                  <div class="flex justify-between items-center bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
                     <div>
                       <span class="block text-[10px] text-slate-400">Cuenta Corriente BCP:</span>
-                      <span class="font-mono font-bold text-slate-800">191-2849102-0-45</span>
+                      <span class="font-mono font-bold text-slate-800 dark:text-slate-200">191-2849102-0-45</span>
                     </div>
                     <button
                       type="button"
                       @click="copiarTexto('191-2849102-0-45', 'cta')"
-                      class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-semibold"
+                      class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-semibold"
                     >
                       Copiar
                     </button>
                   </div>
 
-                  <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-200">
+                  <div class="flex justify-between items-center bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
                     <div>
                       <span class="block text-[10px] text-slate-400">Código Interbancario (CCI):</span>
-                      <span class="font-mono font-bold text-slate-800">002-191-002849102045-56</span>
+                      <span class="font-mono font-bold text-slate-800 dark:text-slate-200">002-191-002849102045-56</span>
                     </div>
                     <button
                       type="button"
                       @click="copiarTexto('002-191-002849102045-56', 'cci')"
-                      class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-semibold"
+                      class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-semibold"
                     >
                       Copiar
                     </button>
                   </div>
                 </div>
 
-                <div class="text-[11px] text-slate-500">
-                  Beneficiario: <strong>SIAPP SOFTWARE PERU S.A.C.</strong><br />
-                  RUC: <strong>20608912345</strong>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                  Beneficiario: <strong class="text-slate-700 dark:text-slate-300">SIAPP SOFTWARE PERU S.A.C.</strong><br />
+                  RUC: <strong class="text-slate-700 dark:text-slate-300">20608912345</strong>
                 </div>
               </div>
 
               <div>
-                <label class="block font-semibold text-slate-700 mb-1">N° de Operación de la Transferencia:</label>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">N° de Operación de la Transferencia:</label>
                 <input
                   v-model="formTransferencia.nroOperacion"
                   type="text"
                   placeholder="Ej: 98410293"
-                  class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
+                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
                 />
               </div>
             </div>
@@ -697,7 +697,7 @@ const copiarTexto = (texto, idNotif) => {
             </div>
 
             <div class="text-center text-[11px] text-slate-400 flex items-center justify-center gap-1.5 pt-1">
-              <i class="fa-light fa-shield-halved text-emerald-600"></i>
+              <i class="fa-light fa-shield-halved text-emerald-600 dark:text-emerald-400"></i>
               <span>Garantía de disponibilidad y respaldo de datos 100% garantizado</span>
             </div>
 
@@ -709,43 +709,43 @@ const copiarTexto = (texto, idNotif) => {
     </div>
 
     <!-- SECCIÓN DE PREGUNTAS FRECUENTES Y SOPORTE DE FACTURACIÓN -->
-    <div class="mt-16 pt-12 border-t border-slate-200/80">
+    <div class="mt-16 pt-12 border-t border-slate-200/80 dark:border-slate-800">
       <div class="text-center max-w-2xl mx-auto space-y-2 mb-8">
-        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 font-heading">
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-heading">
           Preguntas Frecuentes sobre Pagos y Activación
         </h3>
-        <p class="text-sm text-slate-600">
+        <p class="text-sm text-slate-600 dark:text-slate-400">
           Todo lo que necesitas saber sobre el cobro y la continuidad de tu servicio en la nube.
         </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs space-y-2">
-          <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
+          <div class="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg">
             <i class="fa-light fa-bolt"></i>
           </div>
-          <h4 class="font-bold text-slate-900 text-sm">¿Cuánto tarda en habilitarse el sistema?</h4>
-          <p class="text-xs text-slate-600 leading-relaxed">
+          <h4 class="font-bold text-slate-900 dark:text-white text-sm">¿Cuánto tarda en habilitarse el sistema?</h4>
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
             La activación es instantánea. Nuestro webhook actualiza la vigencia en la base de datos central en menos de 5 segundos tras aprobarse la transacción.
           </p>
         </div>
 
-        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs space-y-2">
-          <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
+          <div class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg">
             <i class="fa-light fa-file-invoice-dollar"></i>
           </div>
-          <h4 class="font-bold text-slate-900 text-sm">¿Emiten factura electrónica?</h4>
-          <p class="text-xs text-slate-600 leading-relaxed">
+          <h4 class="font-bold text-slate-900 dark:text-white text-sm">¿Emiten factura electrónica?</h4>
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
             Sí. Emitimos factura electrónica a nombre de la razón social y RUC de su institución educativa, la cual llega automáticamente a su correo registrado.
           </p>
         </div>
 
-        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-xs space-y-2">
-          <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
+          <div class="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">
             <i class="fa-light fa-headset"></i>
           </div>
-          <h4 class="font-bold text-slate-900 text-sm">¿Necesitas soporte financiero?</h4>
-          <p class="text-xs text-slate-600 leading-relaxed">
+          <h4 class="font-bold text-slate-900 dark:text-white text-sm">¿Necesitas soporte financiero?</h4>
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
             Comunícate directamente con nuestro equipo de facturación al <strong>(01) 748-2900</strong> o vía WhatsApp al <strong>+51 987 654 321</strong>.
           </p>
         </div>

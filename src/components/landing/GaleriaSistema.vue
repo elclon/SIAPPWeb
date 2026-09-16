@@ -103,7 +103,7 @@ const onImageLoad = () => {
   <div class="space-y-8">
     
     <!-- PESTAÑAS SELECTORAS DE MÓDULOS -->
-    <div class="flex flex-wrap items-center justify-center gap-2 p-1.5 bg-slate-100/80 backdrop-blur-md rounded-2xl border border-slate-200/80 max-w-4xl mx-auto shadow-xs">
+    <div class="flex flex-wrap items-center justify-center gap-2 p-1.5 bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800 max-w-4xl mx-auto shadow-xs">
       <button
         v-for="m in modulos"
         :key="m.id"
@@ -112,17 +112,17 @@ const onImageLoad = () => {
         :class="[
           'px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2',
           moduloActivo === m.id
-            ? 'bg-white text-slate-900 shadow-md shadow-slate-200/80 border border-slate-200/60 scale-[1.02]'
-            : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-md shadow-slate-200/80 dark:shadow-none border border-slate-200/60 dark:border-slate-700 scale-[1.02]'
+            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60'
         ]"
       >
-        <i :class="[m.icono, moduloActivo === m.id ? 'text-blue-600' : 'text-slate-400']"></i>
+        <i :class="[m.icono, moduloActivo === m.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400']"></i>
         <span>{{ m.titulo }}</span>
       </button>
     </div>
 
     <!-- VENTANA DEL SISTEMA (WINDOW MOCKUP) -->
-    <div class="bg-white rounded-3xl shadow-2xl shadow-slate-300/60 border border-slate-200/90 overflow-hidden max-w-6xl mx-auto transition-all duration-300">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl shadow-slate-300/60 dark:shadow-slate-950/80 border border-slate-200/90 dark:border-slate-800 overflow-hidden max-w-6xl mx-auto transition-all duration-300">
       
       <!-- BARRA SUPERIOR DE LA VENTANA (ESTILO APLICACIÓN MODERNA) -->
       <div class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between border-b border-slate-800">
@@ -257,19 +257,19 @@ const onImageLoad = () => {
         </div>
 
         <!-- PANEL DE DETALLES Y BENEFICIOS DEL MÓDULO (4 Columnas) -->
-        <div class="lg:col-span-4 p-6 sm:p-8 bg-white flex flex-col justify-between space-y-6">
+        <div class="lg:col-span-4 p-6 sm:p-8 bg-white dark:bg-slate-900 flex flex-col justify-between space-y-6">
           
           <div class="space-y-4">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-bold">
               <i :class="moduloSeleccionado.icono"></i>
               <span>Módulo {{ moduloSeleccionado.titulo }}</span>
             </div>
 
             <div>
-              <h3 class="text-xl sm:text-2xl font-bold text-slate-900 font-heading leading-tight">
+              <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-heading leading-tight">
                 {{ moduloSeleccionado.subtitulo }}
               </h3>
-              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mt-3">
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed mt-3">
                 {{ moduloSeleccionado.descripcion }}
               </p>
             </div>
@@ -279,9 +279,9 @@ const onImageLoad = () => {
               <div
                 v-for="(caract, idx) in moduloSeleccionado.caracteristicas"
                 :key="idx"
-                class="flex items-start gap-2.5 text-xs text-slate-700"
+                class="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300"
               >
-                <div class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[10px] mt-0.5 shrink-0">
+                <div class="w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] mt-0.5 shrink-0">
                   <i class="fa-solid fa-check"></i>
                 </div>
                 <span class="leading-tight">{{ caract }}</span>
@@ -290,7 +290,7 @@ const onImageLoad = () => {
           </div>
 
           <!-- Botón de Acción a la Demostración -->
-          <div class="pt-4 border-t border-slate-100">
+          <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
             <a
               href="/contacto"
               class="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2"

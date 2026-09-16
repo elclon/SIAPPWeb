@@ -2,7 +2,7 @@
 // Componente de Características Destacadas de SIAPP
 ---
 
-<section class="py-16 sm:py-24 bg-white relative overflow-hidden">
+<section class="py-16 sm:py-24 bg-white dark:bg-slate-950 relative overflow-hidden transition-colors duration-200">
   <!-- Elementos decorativos de fondo flotantes (Puntos sutiles como en el diseño) -->
   <div class="absolute top-12 right-1/3 w-2.5 h-2.5 rounded-full bg-blue-500 opacity-60 hidden lg:block"></div>
   <div class="absolute top-24 right-1/4 w-2 h-2 rounded-full bg-orange-500 opacity-70 hidden lg:block"></div>
@@ -14,13 +14,13 @@
       <div class="lg:col-span-6 space-y-8">
         <!-- Encabezado de Sección -->
         <div class="space-y-2">
-          <span class="text-blue-600 font-bold text-sm sm:text-base tracking-wide block">
+          <span class="text-blue-600 dark:text-blue-400 font-bold text-sm sm:text-base tracking-wide block">
             Aún hay mas...
           </span>
-          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
             Otras características
           </h2>
-          <p class="text-slate-500 text-sm sm:text-base pt-2 leading-relaxed max-w-lg">
+          <p class="text-slate-500 dark:text-slate-400 text-sm sm:text-base pt-2 leading-relaxed max-w-lg">
             Potentes módulos complementarios que integran la vida académica, el
             acceso institucional y la empleabilidad de sus estudiantes en una
             sola plataforma.
@@ -31,14 +31,14 @@
         <div class="space-y-7 pt-2">
           <!-- 1. Control de Asistencias -->
           <div class="flex items-start gap-4 sm:gap-5 group">
-            <div class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 shadow-xs group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-              <i class="fa-light fa-shield-check text-2xl text-blue-600 group-hover:text-white transition-colors duration-300"></i>
+            <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900/40 flex items-center justify-center shrink-0 shadow-xs group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+              <i class="fa-light fa-shield-check text-2xl text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors duration-300"></i>
             </div>
             <div class="space-y-1">
-              <h3 class="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 Emisión de Certificados
               </h3>
-              <p class="text-slate-600 text-sm leading-relaxed max-w-md">
+              <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed max-w-md">
                 Emite certificados de estudios y constancias de notas con firma
                 electrónica, códigos de validación y sellos de agua digitales,
                 garantizando su autenticidad y seguridad para fines laborales o
@@ -49,14 +49,14 @@
 
           <!-- 2. Bolsa de Trabajo -->
           <div class="flex items-start gap-4 sm:gap-5 group">
-            <div class="w-12 h-12 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0 shadow-xs group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
-              <i class="fa-light fa-bullhorn text-2xl text-orange-600 group-hover:text-white transition-colors duration-300"></i>
+            <div class="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/50 border border-orange-100 dark:border-orange-900/40 flex items-center justify-center shrink-0 shadow-xs group-hover:bg-orange-500 group-hover:text-white transition-colors duration-300">
+              <i class="fa-light fa-bullhorn text-2xl text-orange-600 dark:text-orange-400 group-hover:text-white transition-colors duration-300"></i>
             </div>
             <div class="space-y-1">
-              <h3 class="text-lg font-bold text-slate-900 group-hover:text-orange-600 transition-colors">
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                 Bolsa de trabajo
               </h3>
-              <p class="text-slate-600 text-sm leading-relaxed max-w-md">
+              <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed max-w-md">
                 Mantenga informados a sus alumnos y egresados acerca de las
                 propuestas laborales, convenios de prácticas preprofesionales y
                 convocatorias empresariales.
@@ -66,14 +66,14 @@
 
           <!-- 3. Seguimiento de Egresados -->
           <div class="flex items-start gap-4 sm:gap-5 group">
-            <div class="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 shadow-xs group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
-              <i class="fa-light fa-user-graduate text-2xl text-indigo-600 group-hover:text-white transition-colors duration-300"></i>
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-900/40 flex items-center justify-center shrink-0 shadow-xs group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+              <i class="fa-light fa-user-graduate text-2xl text-indigo-600 dark:text-indigo-400 group-hover:text-white transition-colors duration-300"></i>
             </div>
             <div class="space-y-1">
-              <h3 class="text-lg font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                 Seguimiento de egresados
               </h3>
-              <p class="text-slate-600 text-sm leading-relaxed max-w-md">
+              <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed max-w-md">
                 Monitoree la inserción laboral y trayectoria profesional de sus
                 graduados mediante encuestas automatizadas e indicadores para
                 licenciamiento institucional.
@@ -97,13 +97,13 @@
       <div class="lg:col-span-6 flex items-center justify-center">
         <div class="relative max-w-lg lg:max-w-none w-full">
           <!-- Fondo difuminado orgánico -->
-          <div class="absolute inset-0 bg-gradient-to-tr from-blue-100/60 via-orange-50/40 to-indigo-100/50 rounded-3xl blur-2xl -z-10 transform scale-95"></div>
+          <div class="absolute inset-0 bg-gradient-to-tr from-blue-100/60 via-orange-50/40 to-indigo-100/50 dark:from-blue-900/20 dark:via-orange-950/10 dark:to-indigo-900/20 rounded-3xl blur-2xl -z-10 transform scale-95"></div>
 
           <!-- Ilustración de Características -->
           <img
             src="/images/caracteristicas-siapp.jpg"
             alt="Otras características de SIAPP - Gestión Integral"
-            class="w-full h-auto object-contain rounded-2xl drop-shadow-xl"
+            class="w-full h-auto object-contain rounded-2xl drop-shadow-xl dark:opacity-90"
             loading="lazy"
           />
         </div>
