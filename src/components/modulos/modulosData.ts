@@ -43,7 +43,7 @@ export const modulos: ModuloInfo[] = [
       'Control de deudas, moras automáticas y descuentos por pronto pago.',
       'Apertura, movimiento y arqueo de cajas diarias por usuario y sucursal.',
       'Múltiples medios de pago: Efectivo, Tarjetas (POS), Depósitos y Yape/Plin.',
-      'Generación de archivos de recaudación bancaria (BCP, BBVA, Interbank, etc.).',
+      'Generación de archivos de recaudación bancaria y actualizacón de pagos en tiempo real.',
       'Historial y estado de cuenta al instante para padres y alumnos.'
     ]
   },
@@ -66,20 +66,21 @@ export const modulos: ModuloInfo[] = [
     ]
   },
   {
-    id: 'asistencia',
-    tag: 'Control de Acceso',
-    title: 'Asistencia y Control Biométrico',
-    icon: 'fa-light fa-fingerprint',
-    color: 'from-cyan-600 to-blue-600',
-    bgLight: 'bg-cyan-50',
-    textColor: 'text-cyan-600',
-    description: 'Supervisa la puntualidad de estudiantes y personal docente mediante sincronización con dispositivos biométricos.',
+    id: 'carnetizacion',
+    tag: 'Identificación Institucional',
+    title: 'Carnetización y Control de Acceso',
+    icon: 'fa-light fa-id-card',
+    color: 'from-purple-600 to-indigo-600',
+    bgLight: 'bg-purple-50',
+    textColor: 'text-purple-600',
+    description: 'Generación e impresión de carnets estudiantiles y docentes personalizados con el logo institucional, fotografía y código de barras para lectores ópticos.',
     features: [
-      'Conexión con terminales de huella digital, reconocimiento facial y tarjeta.',
-      'Tolerancia de tardanzas configurable por turno y tipo de alumno.',
-      'Bloqueo automático de ingreso a examen por exceso de inasistencias.',
-      'Módulo de justificación de inasistencias con adjuntos médicos.',
-      'Reporte consolidado de horas dictadas por docente para planillas.'
+      'Diseño e impresión masiva de carnets con el logo y colores de la institución.',
+      'Generación automática de códigos de barras (Code 128 / Code 39) y QR únicos por alumno.',
+      'Compatibilidad con lectores ópticos de código de barras para control rápido en puerta.',
+      'Captura e integración directa de fotografía del estudiante en su ficha.',
+      'Validación de vigencia de matrícula y estado de pago al momento de la lectura.',
+      'Reimpresión ágil por duplicado con registro de historial de emisiones.'
     ]
   },
   {
@@ -102,7 +103,7 @@ export const modulos: ModuloInfo[] = [
   {
     id: 'reportes',
     tag: 'Inteligencia de Negocios',
-    title: 'Reportes Gerenciales y Carnets',
+    title: 'Reportes Gerenciales y Estadísticas',
     icon: 'fa-light fa-chart-pie-simple',
     color: 'from-amber-600 to-orange-600',
     bgLight: 'bg-amber-50',
@@ -111,7 +112,7 @@ export const modulos: ModuloInfo[] = [
     features: [
       'Reporte de análisis de matriculados con filtros por carrera, turno y sede.',
       'Reportes de proyección de ingresos vs recaudado real.',
-      'Diseño e impresión masiva de carnets estudiantiles con código de barras.',
+      'Récord académico, rankings de notas y cuadros de mérito.',
       'Certificados de estudios y constancias oficiales prediseñadas.',
       'Exportación nativa a formatos PDF, Excel y formatos de reporte ministerial.'
     ]

@@ -1,0 +1,22 @@
+---
+interface Props {
+  href?: string;
+  class?: string;
+}
+
+const { href = '/', class: className = '' } = Astro.props;
+---
+
+<a href={href} class={`flex items-center gap-3.5 group ${className}`}>
+  <img
+    src="/images/sistema/isotipoazul.png"
+    alt="Isotipo SIAPP"
+    class="w-11 h-11 sm:w-13 sm:h-13 object-contain translate-x-0.4"
+  />
+
+  <img
+    src="/images/sistema/letraslogo.png"
+    alt="SIAPP - Digitalización Educativa"
+    class="h-12 sm:h-14 w-auto object-contain"
+  />
+</a>

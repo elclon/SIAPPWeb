@@ -150,7 +150,7 @@ const onImageLoad = () => {
         <div class="lg:col-span-8 p-4 sm:p-6 flex flex-col justify-center items-center bg-slate-900/60 relative overflow-hidden group">
           
           <!-- Mockup Interactivo / Imagen del Sistema -->
-          <div class="w-full rounded-xl overflow-hidden border border-slate-800 shadow-xl relative bg-slate-900 aspect-video flex items-center justify-center">
+          <div class="w-full rounded-xl overflow-hidden border border-slate-800 shadow-xl relative bg-slate-900 aspect-[1920/911] flex items-center justify-center">
             
             <!-- Imagen física del usuario si existe en public/images/sistema/ -->
             <img
@@ -158,7 +158,7 @@ const onImageLoad = () => {
               :src="moduloSeleccionado.archivoImagen"
               :alt="moduloSeleccionado.titulo"
               v-show="imagenCargada"
-              class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.01] relative z-10"
+              class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-[1.01] relative z-10"
               @load="onImageLoad"
               @error="onImageError"
             />

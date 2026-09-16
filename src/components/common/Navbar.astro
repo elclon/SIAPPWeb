@@ -1,10 +1,12 @@
 ---
+import Logo from './Logo.astro';
+
 const currentPath = Astro.url.pathname;
 
 const navLinks = [
   { name: 'Inicio', href: '/' },
   { name: 'Módulos', href: '/modulos' },
-  { name: 'Planes', href: '/planes' },
+  // { name: 'Planes', href: '/planes' },
   { name: 'Nosotros', href: '/nosotros' },
   { name: 'Contacto', href: '/contacto' },
 ];
@@ -13,32 +15,21 @@ const navLinks = [
 <header class="sticky top-0 z-50 w-full bg-white/85 backdrop-blur-md border-b border-slate-200/80 transition-all">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-20">
-      
       <!-- Logo SIAPP -->
-      <a href="/" class="flex items-center gap-3 group">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">
-          <i class="fa-sharp fa-solid fa-graduation-cap text-lg"></i>
-        </div>
-        <div class="flex flex-col">
-          <span class="font-['Outfit',sans-serif] font-extrabold text-2xl tracking-tight bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-800 bg-clip-text text-transparent">
-            SIAPP
-          </span>
-          <span class="text-[10px] uppercase font-bold tracking-widest text-blue-600 -mt-1">
-            Gestión Académica
-          </span>
-        </div>
-      </a>
+      <Logo />
 
       <!-- Menú de Navegación Desktop -->
       <nav class="hidden md:flex items-center gap-1 lg:gap-2">
-        {navLinks.map(link => {
-          const isActive = currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href));
+        {navLinks.map((link) => {
+          const isActive =
+            currentPath === link.href ||
+            (link.href !== '/' && currentPath.startsWith(link.href));
           return (
             <a
               href={link.href}
               class={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
-                isActive 
-                  ? 'text-blue-600 bg-blue-50/80 font-semibold' 
+                isActive
+                  ? 'text-blue-600 bg-blue-50/80 font-semibold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
               }`}
             >
@@ -94,20 +85,24 @@ const navLinks = [
           <i class="fa-light fa-xmark text-xl hidden" id="menu-icon-close"></i>
         </button>
       </div>
-
     </div>
   </div>
 
   <!-- Menú Móvil Desplegable -->
-  <div id="mobile-menu" class="hidden md:hidden border-b border-slate-200 bg-white px-4 pt-2 pb-6 space-y-2 animate-fadeIn">
-    {navLinks.map(link => {
-      const isActive = currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href));
+  <div
+    id="mobile-menu"
+    class="hidden md:hidden border-b border-slate-200 bg-white px-4 pt-2 pb-6 space-y-2 animate-fadeIn"
+  >
+    {navLinks.map((link) => {
+      const isActive =
+        currentPath === link.href ||
+        (link.href !== '/' && currentPath.startsWith(link.href));
       return (
         <a
           href={link.href}
           class={`block px-3 py-2.5 rounded-lg text-base font-medium ${
-            isActive 
-              ? 'text-blue-600 bg-blue-50 font-semibold' 
+            isActive
+              ? 'text-blue-600 bg-blue-50 font-semibold'
               : 'text-slate-700 hover:bg-slate-50'
           }`}
         >
