@@ -8,10 +8,8 @@ import Logo from './Logo.astro';
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
       <!-- Columna 1: Marca y descripción -->
       <div class="lg:col-span-2 space-y-4">
-        <!-- Logo SIAPP con contenedor blanco redondeado para contraste en fondo oscuro -->
-        <div class="w-full max-w-sm flex items-center justify-center bg-white px-4 py-2.5 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200">
-          <Logo forceOriginalColors={true} />
-        </div>
+        <!-- Logo SIAPP siempre en versión oscura para el fondo oscuro del footer -->
+        <Logo forceTheme="dark" />
         <p class="text-sm text-slate-400 leading-relaxed max-w-sm">
           Plataforma tecnológica líder para la gestión integral de instituciones
           educativas, institutos superiores, centros técnicos y universidades en
