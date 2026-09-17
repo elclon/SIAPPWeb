@@ -1,4 +1,7 @@
 <script setup>
+import { DxDataGrid, DxColumn, DxSearchPanel, DxPaging, DxPager } from 'devextreme-vue/data-grid';
+import { DxButton } from 'devextreme-vue/button';
+
 defineProps({
   vouchers: {
     type: Array,
@@ -21,78 +24,99 @@ defineEmits(['responder-voucher']);
         </p>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-700">
-            <tr>
-              <th class="p-3">Cliente</th>
-              <th class="p-3">Factura Ref.</th>
-              <th class="p-3">Tipo de Abono</th>
-              <th class="p-3">Banco & Operación</th>
-              <th class="p-3 font-mono">Monto</th>
-              <th class="p-3">Observaciones</th>
-              <th class="p-3">Estado</th>
-              <th class="p-3 text-right">Validación</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-            <tr v-for="pago in vouchers" :key="pago.pagoID" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
-              <td class="p-3">
-                <strong class="text-slate-900 dark:text-white block">{{ pago.clienteNombre }}</strong>
-                <span class="text-[10px] text-slate-400 font-mono">{{ pago.ruc }}</span>
-              </td>
-              <td class="p-3 font-mono font-bold text-blue-600">{{ pago.comprobanteCompleto }}</td>
-              <td class="p-3">
-                <span
-                  :class="pago.tipoAbono === 'DETRACCION_BN' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'"
-                  class="px-2 py-0.5 rounded text-[10px] font-bold"
-                >
-                  {{ pago.tipoAbono === 'DETRACCION_BN' ? 'Detracción BN' : 'Neto Comercial' }}
-                </span>
-              </td>
-              <td class="p-3">
-                <span class="font-semibold block">{{ pago.bancoDestino }}</span>
-                <span class="font-mono text-[10px] text-slate-500">Op: {{ pago.numeroOperacion }} ({{ pago.fechaOperacion }})</span>
-              </td>
-              <td class="p-3 font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
-                S/ {{ pago.montoPagado.toFixed(2) }}
-              </td>
-              <td class="p-3 text-slate-500 text-[11px] max-w-xs truncate">
-                {{ pago.observacionesCliente || 'Sin observaciones' }}
-              </td>
-              <td class="p-3">
-                <span
-                  :class="pago.estadoValidacion === 'APROBADO' ? 'bg-emerald-100 text-emerald-800' : pago.estadoValidacion === 'RECHAZADO' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'"
-                  class="px-2 py-0.5 rounded text-[10px] font-bold"
-                >
-                  {{ pago.estadoValidacion }}
-                </span>
-              </td>
-              <td class="p-3 text-right">
-                <div v-if="pago.estadoValidacion === 'EN_REVISION'" class="flex items-center justify-end gap-1.5">
-                  <button
-                    type="button"
-                    @click="$emit('responder-voucher', { pago, estado: 'APROBADO' })"
-                    class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition-all"
-                  >
-                    Aprobar
-                  </button>
-                  <button
-                    type="button"
-                    @click="$emit('responder-voucher', { pago, estado: 'RECHAZADO' })"
-                    class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-red-100 hover:text-red-700 text-slate-700 dark:text-slate-300 font-semibold text-[11px] transition-all"
-                  >
-                    Rechazar
-                  </button>
-                </div>
-                <span v-else class="text-slate-400 text-[11px] italic">
-                  Procesado
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- DxDataGrid de DevExtreme con columnas en una sola línea (Regla 2.12) -->
+      <DxDataGrid
+        :data-source="vouchers"
+        :show-borders="true"
+        :row-alternation-enabled="true"
+        :hover-state-enabled="true"
+        key-expr="pagoID"
+        class="rounded-xl overflow-hidden"
+      >
+        <DxSearchPanel :visible="true" placeholder="Buscar pagos, bancos, facturas..." :width="280" />
+        <DxPaging :page-size="10" />
+        <DxPager :show-page-size-selector="true" :allowed-page-sizes="[5, 10, 20]" :show-info="true" />
+
+        <!-- Regla 2.12: Cada DxColumn completa en una sola línea horizontal -->
+        <DxColumn data-field="clienteNombre" caption="Cliente" cell-template="clienteTemplate" />
+        <DxColumn data-field="comprobanteCompleto" caption="Factura Ref." :width="140" alignment="center" cell-template="comprobanteTemplate" />
+        <DxColumn data-field="tipoAbono" caption="Tipo de Abono" :width="140" cell-template="tipoAbonoTemplate" />
+        <DxColumn data-field="bancoDestino" caption="Banco & Operación" :width="200" cell-template="bancoTemplate" />
+        <DxColumn data-field="montoPagado" caption="Monto" :width="120" alignment="right" cell-template="montoTemplate" />
+        <DxColumn data-field="observacionesCliente" caption="Observaciones" cell-template="observacionesTemplate" />
+        <DxColumn data-field="estadoValidacion" caption="Estado" :width="130" alignment="center" cell-template="estadoTemplate" />
+        <DxColumn caption="Validación" :width="190" alignment="center" cell-template="accionesTemplate" />
+
+        <template #clienteTemplate="{ data }">
+          <div>
+            <strong class="text-slate-900 dark:text-white block text-xs">{{ data.clienteNombre }}</strong>
+            <span class="text-[10px] text-slate-400 font-mono">RUC: {{ data.ruc }}</span>
+          </div>
+        </template>
+
+        <template #comprobanteTemplate="{ data }">
+          <span class="font-mono font-bold text-blue-600 text-xs">{{ data.comprobanteCompleto }}</span>
+        </template>
+
+        <template #tipoAbonoTemplate="{ data }">
+          <span
+            :class="data.tipoAbono === 'DETRACCION_BN' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'"
+            class="px-2 py-0.5 rounded text-[10px] font-bold"
+          >
+            {{ data.tipoAbono === 'DETRACCION_BN' ? 'Detracción BN' : 'Neto Comercial' }}
+          </span>
+        </template>
+
+        <template #bancoTemplate="{ data }">
+          <div>
+            <span class="font-semibold block text-xs text-slate-800 dark:text-slate-200">{{ data.bancoDestino }}</span>
+            <span class="font-mono text-[10px] text-slate-500">Op: {{ data.numeroOperacion }} ({{ data.fechaOperacion }})</span>
+          </div>
+        </template>
+
+        <template #montoTemplate="{ data }">
+          <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs">
+            S/ {{ data.montoPagado.toFixed(2) }}
+          </span>
+        </template>
+
+        <template #observacionesTemplate="{ data }">
+          <span class="text-slate-600 dark:text-slate-400 text-xs truncate block max-w-[200px]">
+            {{ data.observacionesCliente || 'Sin observaciones' }}
+          </span>
+        </template>
+
+        <template #estadoTemplate="{ data }">
+          <span
+            :class="data.estadoValidacion === 'APROBADO' ? 'bg-emerald-100 text-emerald-800' : data.estadoValidacion === 'RECHAZADO' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'"
+            class="px-2 py-0.5 rounded text-[10px] font-bold"
+          >
+            {{ data.estadoValidacion }}
+          </span>
+        </template>
+
+        <template #accionesTemplate="{ data }">
+          <div v-if="data.estadoValidacion === 'EN_REVISION'" class="flex items-center justify-center gap-1.5">
+            <DxButton
+              text="Aprobar"
+              icon="check"
+              type="success"
+              styling-mode="contained"
+              @click="$emit('responder-voucher', { pago: data, estado: 'APROBADO' })"
+            />
+            <DxButton
+              text="Rechazar"
+              icon="close"
+              type="danger"
+              styling-mode="outlined"
+              @click="$emit('responder-voucher', { pago: data, estado: 'RECHAZADO' })"
+            />
+          </div>
+          <span v-else class="text-slate-400 text-[11px] italic">
+            Procesado
+          </span>
+        </template>
+      </DxDataGrid>
     </div>
   </div>
 </template>

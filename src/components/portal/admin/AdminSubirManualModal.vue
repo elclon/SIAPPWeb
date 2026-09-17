@@ -1,5 +1,7 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { DxForm, DxGroupItem, DxSimpleItem, DxRequiredRule } from 'devextreme-vue/form';
+import { DxButton } from 'devextreme-vue/button';
 
 const props = defineProps({
   visible: {
@@ -26,6 +28,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'guardar']);
 
+const dxFormRef = ref(null);
+
 const formSubidaManual = ref({
   categoriaID: 1,
   codigoFijo: '',
@@ -51,13 +55,33 @@ watch(() => [props.visible, props.manualFijo, props.empresa], () => {
   }
 }, { immediate: true });
 
+// Regla 2.4: Editor Options con computed(...)
+const tituloOptions = computed(() => ({
+  placeholder: 'Ej: Manual Operativo: Módulo Académico (Logo SIAPP)'
+}));
+
+const versionOptions = computed(() => ({
+  placeholder: '2026.1'
+}));
+
+const tamanoOptions = computed(() => ({
+  min: 0.1,
+  step: 0.1,
+  format: '#0.0 \'MB\''
+}));
+
+const urlArchivoOptions = computed(() => ({
+  placeholder: '/documentos/siapp/manual-academico-siapp.pdf'
+}));
+
 const cerrarModal = () => {
   emit('update:visible', false);
 };
 
-const onSubmit = () => {
-  if (!formSubidaManual.value.tituloPersonalizado || !formSubidaManual.value.urlArchivo) {
-    alert('Ingrese el título y la ruta del archivo PDF.');
+// Regla 6.1: Validación con DxForm antes de emitir
+const handleSubmit = () => {
+  const validationResult = dxFormRef.value?.instance?.validate();
+  if (!validationResult || !validationResult.isValid) {
     return;
   }
 
@@ -102,70 +126,53 @@ const onSubmit = () => {
         </button>
       </div>
 
-      <form @submit.prevent="onSubmit" class="space-y-3.5">
+      <!-- Regla 2.1: Envoltura de Formulario Obligatoria -->
+      <form @submit.prevent="handleSubmit" class="space-y-3.5">
         
         <div class="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs text-blue-800 dark:text-blue-300">
           <strong>Manual Requerido MINEDU:</strong> {{ manualFijo?.tituloBase }}
         </div>
 
-        <div>
-          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Título Oficial del Documento:</label>
-          <input
-            v-model="formSubidaManual.tituloPersonalizado"
-            type="text"
-            required
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white font-semibold"
-          />
-        </div>
+        <!-- Regla 2.2: DxForm único -->
+        <DxForm
+          ref="dxFormRef"
+          :form-data="formSubidaManual"
+          validation-group="manualValidationGroup"
+          :col-count="2"
+          label-location="top"
+        >
+          <DxSimpleItem data-field="tituloPersonalizado" :col-span="2" caption="Título Oficial" :editor-options="tituloOptions">
+            <DxRequiredRule message="El título es obligatorio" />
+          </DxSimpleItem>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Versión del Manual:</label>
-            <input
-              v-model="formSubidaManual.version"
-              type="text"
-              class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-mono"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Tamaño Estimado (MB):</label>
-            <input
-              v-model="formSubidaManual.tamanoArchivoMB"
-              type="number"
-              step="0.1"
-              class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-mono"
-            />
-          </div>
-        </div>
+          <DxSimpleItem data-field="version" caption="Versión" :editor-options="versionOptions" />
 
-        <div>
-          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Ruta o URL del PDF (con logo del instituto):</label>
-          <input
-            v-model="formSubidaManual.urlArchivo"
-            type="text"
-            required
-            placeholder="/documentos/siapp/manual-academico-siapp.pdf"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-mono text-slate-900 dark:text-white"
-          />
-          <span class="text-[10px] text-slate-400 mt-0.5 block">Puedes guardarlo en public/documentos/[instituto]/ o en almacenamiento cloud</span>
-        </div>
+          <DxSimpleItem data-field="tamanoArchivoMB" caption="Tamaño Estimado (MB)" editor-type="dxNumberBox" :editor-options="tamanoOptions">
+            <DxRequiredRule message="Requerido" />
+          </DxSimpleItem>
 
+          <DxSimpleItem data-field="urlArchivo" :col-span="2" caption="Ruta o URL del PDF" :editor-options="urlArchivoOptions">
+            <DxRequiredRule message="La ruta del archivo es obligatoria" />
+          </DxSimpleItem>
+        </DxForm>
+
+        <!-- Regla 6.3: Orden estricto [ Cancelar ] [ Confirmar y Publicar ] -->
         <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-          <button
-            type="button"
-            @click="cerrarModal"
-            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
+          <DxButton
+            text="Cancelar"
+            type="normal"
+            styling-mode="outlined"
             :disabled="isGuardando"
-            class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 flex items-center gap-1.5"
-          >
-            <i v-if="isGuardando" class="fa-solid fa-spinner fa-spin"></i>
-            <span>{{ isGuardando ? 'Guardando...' : 'Confirmar y Publicar Manual' }}</span>
-          </button>
+            @click="cerrarModal"
+          />
+          <DxButton
+            :text="isGuardando ? 'Guardando...' : 'Confirmar y Publicar Manual'"
+            :icon="isGuardando ? 'spin' : 'upload'"
+            type="default"
+            styling-mode="contained"
+            :disabled="isGuardando"
+            use-submit-behavior="true"
+          />
         </div>
       </form>
     </div>

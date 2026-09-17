@@ -1,5 +1,7 @@
 <script setup>
 import { computed } from 'vue';
+import { DxDataGrid, DxColumn, DxSearchPanel, DxPaging, DxPager } from 'devextreme-vue/data-grid';
+import { DxButton } from 'devextreme-vue/button';
 
 const props = defineProps({
   calculosClientes: {
@@ -77,7 +79,7 @@ const totalNetoComercialMes = computed(() => {
       </div>
     </div>
 
-    <!-- TABLA DE AUDITORÍA Y FACTURACIÓN -->
+    <!-- DATA GRID DE DEVEXTREME: AUDITORÍA Y FACTURACIÓN -->
     <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -119,86 +121,111 @@ const totalNetoComercialMes = computed(() => {
         </div>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-700">
-            <tr>
-              <th class="p-3">Institución Cliente</th>
-              <th class="p-3">Estado de Enlace</th>
-              <th class="p-3">Modalidad</th>
-              <th class="p-3 text-center">Alumnos Activos</th>
-              <th class="p-3">Tarifa</th>
-              <th class="p-3 font-mono">Total Facturable</th>
-              <th class="p-3 font-mono text-amber-600">Detracción (12%)</th>
-              <th class="p-3 font-mono text-blue-600">Neto Comercial</th>
-              <th class="p-3 text-center">Estado Emisión</th>
-              <th class="p-3 text-right">Acción</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-            <tr v-for="item in calculosClientes" :key="item.clienteID" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
-              <td class="p-3">
-                <span class="font-bold text-slate-900 dark:text-white block">{{ item.nombreComercial }}</span>
-                <span class="text-[10px] text-slate-400 font-mono">RUC: {{ item.ruc }} &bull; {{ item.subdominioSIAPP }}</span>
-              </td>
-              <td class="p-3">
-                <span
-                  :class="item.estadoConexionBD === 'CONECTADO' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300' : item.estadoConexionBD === 'NO_REQUERIDO_FIJO' ? 'bg-slate-100 text-slate-700 border-slate-300' : 'bg-red-100 text-red-800 border-red-300'"
-                  class="px-2 py-0.5 rounded text-[10px] font-bold border"
-                >
-                  {{ item.estadoConexionBD === 'CONECTADO' ? 'Sincronizado' : item.estadoConexionBD === 'NO_REQUERIDO_FIJO' ? 'Tarifa Fija' : 'Pendiente' }}
-                </span>
-                <span class="text-[10px] text-slate-400 block truncate max-w-[150px]">{{ item.mensajeConexion }}</span>
-              </td>
-              <td class="p-3 font-semibold">
-                {{ item.tipoCobro === 'POR_ALUMNO' ? 'Por Alumno' : 'Tarifa Fija' }}
-              </td>
-              <td class="p-3 text-center font-bold text-sm font-mono">
-                {{ item.tipoCobro === 'POR_ALUMNO' ? item.alumnosDetectados : '—' }}
-              </td>
-              <td class="p-3 font-mono">
-                {{ item.tipoCobro === 'POR_ALUMNO' ? 'S/ ' + item.tarifaAplicada.toFixed(2) : 'Fijo' }}
-              </td>
-              <td class="p-3 font-mono font-bold text-slate-900 dark:text-white">
-                S/ {{ item.montoTotal.toFixed(2) }}
-              </td>
-              <td class="p-3 font-mono font-semibold text-amber-600">
-                S/ {{ item.montoDetraccion.toFixed(2) }}
-              </td>
-              <td class="p-3 font-mono font-bold text-blue-600">
-                S/ {{ item.montoNeto.toFixed(2) }}
-              </td>
-              <td class="p-3 text-center">
-                <span
-                  v-if="item.yaFacturadoEnPeriodo"
-                  class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold"
-                >
-                  Emitido
-                </span>
-                <span
-                  v-else
-                  class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-semibold"
-                >
-                  Por Emitir
-                </span>
-              </td>
-              <td class="p-3 text-right">
-                <button
-                  v-if="!item.yaFacturadoEnPeriodo"
-                  type="button"
-                  @click="$emit('emitir-cobranza', item)"
-                  class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-xs"
-                >
-                  Emitir Cobranza
-                </button>
-                <span v-else class="text-xs text-slate-400 italic font-semibold">
-                  Registrado
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- DxDataGrid con columnas en una sola línea (Regla 2.12) -->
+      <DxDataGrid
+        :data-source="calculosClientes"
+        :show-borders="true"
+        :row-alternation-enabled="true"
+        :hover-state-enabled="true"
+        key-expr="clienteID"
+        class="rounded-xl overflow-hidden"
+      >
+        <DxSearchPanel :visible="true" placeholder="Filtrar clientes..." :width="250" />
+        <DxPaging :page-size="10" />
+        <DxPager :show-page-size-selector="true" :allowed-page-sizes="[5, 10, 20]" :show-info="true" />
+
+        <!-- Regla 2.12: Cada DxColumn completa en una sola línea horizontal -->
+        <DxColumn data-field="nombreComercial" caption="Institución Cliente" cell-template="institucionTemplate" />
+        <DxColumn data-field="estadoConexionBD" caption="Estado de Enlace" :width="160" cell-template="estadoTemplate" />
+        <DxColumn data-field="tipoCobro" caption="Modalidad" :width="120" cell-template="modalidadTemplate" />
+        <DxColumn data-field="alumnosDetectados" caption="Alumnos Activos" :width="130" alignment="center" cell-template="alumnosTemplate" />
+        <DxColumn caption="Tarifa" :width="110" alignment="right" cell-template="tarifaTemplate" />
+        <DxColumn data-field="montoTotal" caption="Total Facturable" :width="130" alignment="right" cell-template="totalTemplate" />
+        <DxColumn data-field="montoDetraccion" caption="Detracción (12%)" :width="130" alignment="right" cell-template="detraccionTemplate" />
+        <DxColumn data-field="montoNeto" caption="Neto Comercial" :width="130" alignment="right" cell-template="netoTemplate" />
+        <DxColumn caption="Estado Emisión" :width="130" alignment="center" cell-template="emisionTemplate" />
+        <DxColumn caption="Acción" :width="140" alignment="center" cell-template="accionTemplate" />
+
+        <template #institucionTemplate="{ data }">
+          <div>
+            <span class="font-bold text-slate-900 dark:text-white block text-xs">{{ data.nombreComercial }}</span>
+            <span class="text-[10px] text-slate-400 font-mono">RUC: {{ data.ruc }}</span>
+          </div>
+        </template>
+
+        <template #estadoTemplate="{ data }">
+          <span
+            :class="data.estadoConexionBD === 'CONECTADO' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300' : data.estadoConexionBD === 'NO_REQUERIDO_FIJO' ? 'bg-slate-100 text-slate-700 border-slate-300' : 'bg-red-100 text-red-800 border-red-300'"
+            class="px-2 py-0.5 rounded text-[10px] font-bold border"
+          >
+            {{ data.estadoConexionBD === 'CONECTADO' ? 'Sincronizado' : data.estadoConexionBD === 'NO_REQUERIDO_FIJO' ? 'Tarifa Fija' : 'Pendiente' }}
+          </span>
+        </template>
+
+        <template #modalidadTemplate="{ data }">
+          <span class="text-xs font-semibold">
+            {{ data.tipoCobro === 'POR_ALUMNO' ? 'Por Alumno' : 'Tarifa Fija' }}
+          </span>
+        </template>
+
+        <template #alumnosTemplate="{ data }">
+          <span class="font-bold font-mono text-xs">
+            {{ data.tipoCobro === 'POR_ALUMNO' ? data.alumnosDetectados : '—' }}
+          </span>
+        </template>
+
+        <template #tarifaTemplate="{ data }">
+          <span class="font-mono text-xs">
+            {{ data.tipoCobro === 'POR_ALUMNO' ? 'S/ ' + data.tarifaAplicada.toFixed(2) : 'Fijo' }}
+          </span>
+        </template>
+
+        <template #totalTemplate="{ data }">
+          <span class="font-mono font-bold text-xs text-slate-900 dark:text-white">
+            S/ {{ data.montoTotal.toFixed(2) }}
+          </span>
+        </template>
+
+        <template #detraccionTemplate="{ data }">
+          <span class="font-mono font-semibold text-xs text-amber-600">
+            S/ {{ data.montoDetraccion.toFixed(2) }}
+          </span>
+        </template>
+
+        <template #netoTemplate="{ data }">
+          <span class="font-mono font-bold text-xs text-blue-600">
+            S/ {{ data.montoNeto.toFixed(2) }}
+          </span>
+        </template>
+
+        <template #emisionTemplate="{ data }">
+          <span
+            v-if="data.yaFacturadoEnPeriodo"
+            class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold"
+          >
+            Emitido
+          </span>
+          <span
+            v-else
+            class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-semibold"
+          >
+            Por Emitir
+          </span>
+        </template>
+
+        <template #accionTemplate="{ data }">
+          <DxButton
+            v-if="!data.yaFacturadoEnPeriodo"
+            text="Emitir Cobranza"
+            type="default"
+            styling-mode="contained"
+            @click="$emit('emitir-cobranza', data)"
+          />
+          <span v-else class="text-xs text-slate-400 italic font-semibold">
+            Registrado
+          </span>
+        </template>
+      </DxDataGrid>
     </div>
 
   </div>

@@ -1,4 +1,6 @@
 <script setup>
+import { DxButton } from 'devextreme-vue/button';
+
 defineProps({
   isCalculando: {
     type: Boolean,
@@ -24,26 +26,24 @@ defineEmits(['nueva-empresa', 'sincronizar']);
       </p>
     </div>
 
-    <!-- Botones Principales de Acción -->
+    <!-- Botones Principales de Acción con DevExtreme -->
     <div class="flex items-center gap-3 flex-wrap">
-      <button
-        type="button"
+      <DxButton
+        text="Registrar Nueva Empresa"
+        icon="plus"
+        type="success"
+        styling-mode="contained"
         @click="$emit('nueva-empresa')"
-        class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center gap-2 transition-all"
-      >
-        <i class="fa-light fa-plus"></i>
-        <span>Registrar Nueva Empresa</span>
-      </button>
+      />
 
-      <button
-        type="button"
-        @click="$emit('sincronizar')"
+      <DxButton
+        :text="isCalculando ? 'Sincronizando...' : 'Sincronizar Alumnos Matriculados'"
+        :icon="isCalculando ? 'spin' : 'refresh'"
         :disabled="isCalculando"
-        class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-lg shadow-blue-500/25 flex items-center gap-2 transition-all disabled:opacity-60"
-      >
-        <i :class="isCalculando ? 'fa-solid fa-spinner fa-spin' : 'fa-light fa-arrows-rotate'"></i>
-        <span>{{ isCalculando ? 'Sincronizando...' : 'Sincronizar Alumnos Matriculados' }}</span>
-      </button>
+        type="default"
+        styling-mode="contained"
+        @click="$emit('sincronizar')"
+      />
     </div>
   </div>
 </template>

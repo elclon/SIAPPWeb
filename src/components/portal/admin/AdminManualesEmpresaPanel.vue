@@ -1,4 +1,6 @@
 <script setup>
+import { DxButton } from 'devextreme-vue/button';
+
 defineProps({
   empresa: {
     type: Object,
@@ -29,14 +31,13 @@ const obtenerManualSubido = (codigoFijo, clienteId, subidos) => {
     <!-- BARRA SUPERIOR DEL PANEL DE MANUALES DE LA EMPRESA -->
     <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div class="flex items-center gap-4">
-        <button
-          type="button"
+        <DxButton
+          icon="back"
+          type="normal"
+          styling-mode="outlined"
+          hint="Volver al Directorio de Empresas"
           @click="$emit('volver')"
-          class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center transition-all shrink-0"
-          title="Volver al Directorio de Empresas"
-        >
-          <i class="fa-light fa-arrow-left text-base"></i>
-        </button>
+        />
         <div>
           <div class="flex items-center gap-2 flex-wrap">
             <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-heading">
@@ -53,14 +54,13 @@ const obtenerManualSubido = (codigoFijo, clienteId, subidos) => {
       </div>
 
       <div class="flex items-center gap-2">
-        <button
-          type="button"
+        <DxButton
+          text="Ver Otras Empresas"
+          icon="menu"
+          type="normal"
+          styling-mode="outlined"
           @click="$emit('volver')"
-          class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all flex items-center gap-1.5"
-        >
-          <i class="fa-light fa-building-columns"></i>
-          <span>Ver Otras Empresas</span>
-        </button>
+        />
       </div>
     </div>
 
@@ -128,15 +128,13 @@ const obtenerManualSubido = (codigoFijo, clienteId, subidos) => {
             Aún no disponible en el portal del cliente
           </span>
 
-          <button
-            type="button"
+          <DxButton
+            :text="obtenerManualSubido(manualFijo.codigoFijo, empresa.clienteID, manualesSubidos) ? 'Reemplazar PDF' : 'Subir PDF con Logo'"
+            :icon="obtenerManualSubido(manualFijo.codigoFijo, empresa.clienteID, manualesSubidos) ? 'refresh' : 'upload'"
+            :type="obtenerManualSubido(manualFijo.codigoFijo, empresa.clienteID, manualesSubidos) ? 'normal' : 'default'"
+            :styling-mode="obtenerManualSubido(manualFijo.codigoFijo, empresa.clienteID, manualesSubidos) ? 'outlined' : 'contained'"
             @click="$emit('subir-manual', manualFijo)"
-            :class="obtenerManualSubido(manualFijo.codigoFijo, empresa.clienteID, manualesSubidos) ? 'bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-700' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs'"
-            class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
-          >
-            <i :class="obtenerManualSubido(manualFijo.codigoFijo, empresa.clienteID, manualesSubidos) ? 'fa-light fa-arrow-rotate-right' : 'fa-light fa-arrow-up-from-bracket'"></i>
-            <span>{{ obtenerManualSubido(manualFijo.codigoFijo, empresa.clienteID, manualesSubidos) ? 'Reemplazar PDF' : 'Subir PDF con Logo' }}</span>
-          </button>
+          />
         </div>
       </div>
     </div>

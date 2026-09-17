@@ -1,5 +1,7 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { DxForm, DxGroupItem, DxSimpleItem, DxRequiredRule, DxStringLengthRule, DxEmailRule } from 'devextreme-vue/form';
+import { DxButton } from 'devextreme-vue/button';
 
 const props = defineProps({
   visible: {
@@ -14,6 +16,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'guardar']);
 
+const dxFormRef = ref(null);
+
 const formEmpresa = ref({
   clienteID: 0,
   ruc: '',
@@ -21,16 +25,13 @@ const formEmpresa = ref({
   nombreComercial: '',
   subdominioSIAPP: '',
   codigoConexion: '',
-  cadenaConexion: '',
   tipoCobro: 'POR_ALUMNO',
   tarifaPorAlumno: 4.00,
   montoFijoPactado: 1500.00,
   tipoComprobanteHabitual: '01',
   porcentajeDetraccion: 12.00,
   contactoPrincipal: '',
-  telefonoContacto: '',
-  emailContacto: '',
-  passwordInicial: 'Password2026!'
+  emailContacto: ''
 });
 
 watch(() => props.visible, (newVal) => {
@@ -42,27 +43,87 @@ watch(() => props.visible, (newVal) => {
       nombreComercial: '',
       subdominioSIAPP: '',
       codigoConexion: '',
-      cadenaConexion: '',
       tipoCobro: 'POR_ALUMNO',
       tarifaPorAlumno: 4.00,
       montoFijoPactado: 1500.00,
       tipoComprobanteHabitual: '01',
       porcentajeDetraccion: 12.00,
       contactoPrincipal: '',
-      telefonoContacto: '',
-      emailContacto: '',
-      passwordInicial: 'Password2026!'
+      emailContacto: ''
     };
   }
 });
+
+// Regla 2.4: Editor Options declarados en computed(...)
+const tipoCobroOptions = computed(() => ({
+  items: [
+    { id: 'POR_ALUMNO', text: 'Por Alumno Matriculado' },
+    { id: 'FIJO', text: 'Monto Fijo Mensual' }
+  ],
+  displayExpr: 'text',
+  valueExpr: 'id',
+  onValueChanged: (e) => {
+    formEmpresa.value.tipoCobro = e.value;
+  }
+}));
+
+const rucOptions = computed(() => ({
+  placeholder: '20549281921',
+  maxLength: 11
+}));
+
+const nombreComercialOptions = computed(() => ({
+  placeholder: 'Ej: Instituto Tecnológico SIAPP'
+}));
+
+const razonSocialOptions = computed(() => ({
+  placeholder: 'Ej: INSTITUTO DE EDUCACION SUPERIOR TECNOLOGICO SIAPP'
+}));
+
+const subdominioOptions = computed(() => ({
+  placeholder: 'institucion.siapp.edu.pe'
+}));
+
+const codigoConexionOptions = computed(() => ({
+  placeholder: 'Ej: siapp'
+}));
+
+const tarifaPorAlumnoOptions = computed(() => ({
+  min: 0.1,
+  step: 0.1,
+  format: '#,##0.00'
+}));
+
+const montoFijoOptions = computed(() => ({
+  min: 1,
+  step: 10,
+  format: 'S/ #,##0.00'
+}));
+
+const porcentajeDetraccionOptions = computed(() => ({
+  min: 0,
+  max: 100,
+  step: 0.5,
+  format: '#0.00 \'%\''
+}));
+
+const emailOptions = computed(() => ({
+  placeholder: 'administracion@siapp.edu.pe',
+  mode: 'email'
+}));
+
+const contactoOptions = computed(() => ({
+  placeholder: 'Ej: Lic. Roberto Zegarra'
+}));
 
 const cerrarModal = () => {
   emit('update:visible', false);
 };
 
-const onSubmit = () => {
-  if (!formEmpresa.value.ruc || !formEmpresa.value.nombreComercial || !formEmpresa.value.emailContacto) {
-    alert('Por favor complete los campos obligatorios (RUC, Nombre Comercial y Correo de Contacto).');
+// Regla 6.1: Validación obligatoria con dxFormRef antes de emitir
+const handleSubmit = () => {
+  const validationResult = dxFormRef.value?.instance?.validate();
+  if (!validationResult || !validationResult.isValid) {
     return;
   }
   emit('guardar', { ...formEmpresa.value });
@@ -89,149 +150,104 @@ const onSubmit = () => {
         </button>
       </div>
 
-      <form @submit.prevent="onSubmit" class="space-y-4">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">RUC:</label>
-            <input
-              v-model="formEmpresa.ruc"
-              type="text"
-              maxlength="11"
-              required
-              placeholder="20549281921"
-              class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-mono font-bold text-slate-900 dark:text-white"
+      <!-- Regla 2.1: Envoltura de Formulario Obligatoria -->
+      <form @submit.prevent="handleSubmit" class="space-y-4">
+        <!-- Regla 2.2 y 2.3: Único DxForm con DxGroupItem y DxSimpleItem -->
+        <DxForm
+          ref="dxFormRef"
+          :form-data="formEmpresa"
+          validation-group="empresaValidationGroup"
+          :col-count="1"
+          label-location="top"
+        >
+          <!-- Grupo: Identificación Institucional -->
+          <DxGroupItem :col-count="3" caption="Identificación Institucional">
+            <DxSimpleItem data-field="ruc" :editor-options="rucOptions">
+              <DxRequiredRule message="El RUC es obligatorio" />
+              <DxStringLengthRule :min="11" :max="11" message="El RUC debe tener 11 dígitos" />
+            </DxSimpleItem>
+
+            <DxSimpleItem data-field="nombreComercial" :col-span="2" :editor-options="nombreComercialOptions">
+              <DxRequiredRule message="El Nombre Comercial es obligatorio" />
+            </DxSimpleItem>
+
+            <DxSimpleItem data-field="razonSocial" :col-span="3" :editor-options="razonSocialOptions" />
+          </DxGroupItem>
+
+          <!-- Grupo: Enlaces y Conectividad -->
+          <DxGroupItem :col-count="2" caption="Enlaces y Acceso">
+            <DxSimpleItem data-field="subdominioSIAPP" :editor-options="subdominioOptions">
+              <DxRequiredRule message="El subdominio es obligatorio" />
+            </DxSimpleItem>
+
+            <DxSimpleItem data-field="codigoConexion" :editor-options="codigoConexionOptions">
+              <DxRequiredRule message="El código de enlace es obligatorio" />
+            </DxSimpleItem>
+          </DxGroupItem>
+
+          <!-- Grupo: Condiciones Contractuales -->
+          <DxGroupItem :col-count="3" caption="Condiciones Contractuales & Facturación">
+            <DxSimpleItem
+              data-field="tipoCobro"
+              editor-type="dxSelectBox"
+              :editor-options="tipoCobroOptions"
             />
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nombre Comercial:</label>
-            <input
-              v-model="formEmpresa.nombreComercial"
-              type="text"
-              required
-              placeholder="Ej: Instituto Tecnológico SIAPP"
-              class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white"
+
+            <DxSimpleItem
+              v-if="formEmpresa.tipoCobro === 'POR_ALUMNO'"
+              data-field="tarifaPorAlumno"
+              editor-type="dxNumberBox"
+              :editor-options="tarifaPorAlumnoOptions"
+            >
+              <DxRequiredRule message="Ingrese la tarifa por alumno" />
+            </DxSimpleItem>
+
+            <DxSimpleItem
+              v-else
+              data-field="montoFijoPactado"
+              editor-type="dxNumberBox"
+              :editor-options="montoFijoOptions"
+            >
+              <DxRequiredRule message="Ingrese el monto fijo mensual" />
+            </DxSimpleItem>
+
+            <DxSimpleItem
+              data-field="porcentajeDetraccion"
+              editor-type="dxNumberBox"
+              :editor-options="porcentajeDetraccionOptions"
             />
-          </div>
-        </div>
+          </DxGroupItem>
 
-        <div>
-          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Razón Social Completa:</label>
-          <input
-            v-model="formEmpresa.razonSocial"
-            type="text"
-            placeholder="Ej: INSTITUTO DE EDUCACION SUPERIOR TECNOLOGICO SIAPP"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white"
-          />
-        </div>
+          <!-- Grupo: Datos de Contacto -->
+          <DxGroupItem :col-count="2" caption="Contacto y Notificaciones">
+            <DxSimpleItem data-field="contactoPrincipal" :editor-options="contactoOptions">
+              <DxRequiredRule message="El contacto es obligatorio" />
+            </DxSimpleItem>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Subdominio SIAPP:</label>
-            <input
-              v-model="formEmpresa.subdominioSIAPP"
-              type="text"
-              placeholder="institucion.siapp.edu.pe"
-              class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-mono text-slate-900 dark:text-white"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Código de Enlace Institucional:</label>
-            <input
-              v-model="formEmpresa.codigoConexion"
-              type="text"
-              placeholder="Ej: siapp"
-              class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400"
-            />
-          </div>
-        </div>
+            <DxSimpleItem data-field="emailContacto" :editor-options="emailOptions">
+              <DxRequiredRule message="El correo es obligatorio" />
+              <DxEmailRule message="Ingrese un correo electrónico válido" />
+            </DxSimpleItem>
+          </DxGroupItem>
+        </DxForm>
 
-        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
-          <span class="text-xs font-bold text-blue-600 block uppercase tracking-wider">
-            Condiciones del Contrato & Cobranza
-          </span>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tipo de Cobro:</label>
-              <select
-                v-model="formEmpresa.tipoCobro"
-                class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs"
-              >
-                <option value="POR_ALUMNO">Por Alumno Matriculado</option>
-                <option value="FIJO">Monto Fijo Mensual</option>
-              </select>
-            </div>
-
-            <div v-if="formEmpresa.tipoCobro === 'POR_ALUMNO'">
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tarifa por Alumno (S/):</label>
-              <input
-                v-model="formEmpresa.tarifaPorAlumno"
-                type="number"
-                step="0.1"
-                class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-mono font-bold"
-              />
-            </div>
-
-            <div v-else>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Monto Fijo Mensual (S/):</label>
-              <input
-                v-model="formEmpresa.montoFijoPactado"
-                type="number"
-                step="10"
-                class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-mono font-bold"
-              />
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Detracción SPOT (%):</label>
-              <input
-                v-model="formEmpresa.porcentajeDetraccion"
-                type="number"
-                step="0.5"
-                class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-mono font-bold text-amber-600"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nombre del Contacto:</label>
-            <input
-              v-model="formEmpresa.contactoPrincipal"
-              type="text"
-              placeholder="Ej: Lic. Roberto Zegarra"
-              class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Correo de Facturación / Login:</label>
-            <input
-              v-model="formEmpresa.emailContacto"
-              type="email"
-              required
-              placeholder="administracion@siapp.edu.pe"
-              class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs"
-            />
-          </div>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-          <button
-            type="button"
-            @click="cerrarModal"
-            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
+        <!-- Regla 6.3: Orden estricto [ Cancelar ] a la izquierda y [ Guardar ] a la derecha (justify-end) -->
+        <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <DxButton
+            text="Cancelar"
+            type="normal"
+            styling-mode="outlined"
             :disabled="isGuardando"
-            class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20 flex items-center gap-1.5"
-          >
-            <i v-if="isGuardando" class="fa-solid fa-spinner fa-spin"></i>
-            <span>{{ isGuardando ? 'Guardando...' : 'Guardar Institución' }}</span>
-          </button>
+            @click="cerrarModal"
+          />
+          <DxButton
+            :text="isGuardando ? 'Guardando...' : 'Guardar Institución'"
+            :icon="isGuardando ? 'spin' : 'save'"
+            type="success"
+            styling-mode="contained"
+            :disabled="isGuardando"
+            use-submit-behavior="true"
+          />
         </div>
       </form>
     </div>

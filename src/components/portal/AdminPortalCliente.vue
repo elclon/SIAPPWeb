@@ -1,5 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import config from 'devextreme/core/config';
+import { locale, loadMessages } from 'devextreme/localization';
+import esMessages from 'devextreme/localization/messages/es.json';
+import { licenseKey } from './admin/devextreme-license';
 import { MANUALES_FIJOS_MINEDU } from './admin/manualesMineduConstants';
 import AdminPortalHeader from './admin/AdminPortalHeader.vue';
 import AdminEmpresasTab from './admin/AdminEmpresasTab.vue';
@@ -9,6 +13,11 @@ import AdminVouchersTab from './admin/AdminVouchersTab.vue';
 import AdminEmpresaModal from './admin/AdminEmpresaModal.vue';
 import AdminEmitirCobranzaModal from './admin/AdminEmitirCobranzaModal.vue';
 import AdminSubirManualModal from './admin/AdminSubirManualModal.vue';
+
+// Registrar licencia de DevExtreme y configurar idioma español como en SIAPPClient
+config({ licenseKey });
+loadMessages(esMessages);
+locale('es');
 
 // Pestañas Activas en el Panel Admin: 'empresas' | 'calculo' | 'vouchers'
 const pestanaActiva = ref('empresas');

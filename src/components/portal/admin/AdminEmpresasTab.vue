@@ -1,4 +1,7 @@
 <script setup>
+import { DxDataGrid, DxColumn, DxSearchPanel, DxPaging, DxPager } from 'devextreme-vue/data-grid';
+import { DxButton } from 'devextreme-vue/button';
+
 defineProps({
   empresas: {
     type: Array,
@@ -16,8 +19,8 @@ defineProps({
 
 defineEmits(['nueva-empresa', 'ver-manuales']);
 
-const contarManualesEmpresa = (clienteId, manualesSubidos) => {
-  return manualesSubidos.filter(m => m.clienteIDExclusivo === clienteId).length;
+const contarManualesEmpresa = (clienteId, manuales) => {
+  return manuales.filter(m => m.clienteIDExclusivo === clienteId).length;
 };
 </script>
 
@@ -33,72 +36,90 @@ const contarManualesEmpresa = (clienteId, manualesSubidos) => {
         </p>
       </div>
 
-      <button
-        type="button"
+      <DxButton
+        text="Agregar Nueva Empresa"
+        icon="plus"
+        type="default"
+        styling-mode="contained"
         @click="$emit('nueva-empresa')"
-        class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center gap-1.5 self-start sm:self-auto"
-      >
-        <i class="fa-light fa-plus"></i>
-        <span>Agregar Nueva Empresa</span>
-      </button>
+      />
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-xs">
-        <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-700">
-          <tr>
-            <th class="p-3">Institución</th>
-            <th class="p-3">RUC</th>
-            <th class="p-3">Subdominio SIAPP</th>
-            <th class="p-3">Código de Enlace</th>
-            <th class="p-3">Modalidad Cobro</th>
-            <th class="p-3">Tarifa / Monto</th>
-            <th class="p-3">Contacto</th>
-            <th class="p-3 text-center">Manuales MINEDU</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-          <tr v-for="emp in empresas" :key="emp.clienteID" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
-            <td class="p-3">
-              <strong class="text-slate-900 dark:text-white block text-sm">{{ emp.nombreComercial }}</strong>
-              <span class="text-[10px] text-slate-400 block truncate max-w-[200px]">{{ emp.razonSocial }}</span>
-            </td>
-            <td class="p-3 font-mono font-bold">{{ emp.ruc }}</td>
-            <td class="p-3">
-              <a :href="'https://' + emp.subdominioSIAPP" target="_blank" class="text-blue-600 hover:underline font-mono">
-                {{ emp.subdominioSIAPP }}
-              </a>
-            </td>
-            <td class="p-3">
-              <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono font-bold text-[11px] text-indigo-600 dark:text-indigo-400">
-                {{ emp.codigoConexion || 'default' }}
-              </span>
-            </td>
-            <td class="p-3">
-              <span :class="emp.tipoCobro === 'POR_ALUMNO' ? 'text-indigo-600 font-semibold' : 'text-slate-600 font-semibold'">
-                {{ emp.tipoCobro === 'POR_ALUMNO' ? 'Por Alumno' : 'Monto Fijo' }}
-              </span>
-            </td>
-            <td class="p-3 font-mono font-bold">
-              {{ emp.tipoCobro === 'POR_ALUMNO' ? 'S/ ' + (emp.tarifaPorAlumno ? emp.tarifaPorAlumno.toFixed(2) : '4.00') : 'S/ ' + (emp.montoFijoPactado ? emp.montoFijoPactado.toFixed(2) : '1,500.00') }}
-            </td>
-            <td class="p-3">
-              <span class="block font-semibold">{{ emp.contactoPrincipal }}</span>
-              <span class="text-[10px] text-slate-400">{{ emp.emailContacto }}</span>
-            </td>
-            <td class="p-3 text-center">
-              <button
-                type="button"
-                @click="$emit('ver-manuales', emp)"
-                class="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 hover:bg-blue-600 hover:text-white border border-blue-200 dark:border-blue-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5 mx-auto shadow-xs"
-              >
-                <i class="fa-light fa-folder-arrow-up"></i>
-                <span>Manuales MINEDU ({{ contarManualesEmpresa(emp.clienteID, manualesSubidos) }}/{{ totalManualesFijos }})</span>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <!-- DATA GRID DE DEVEXTREME: EMPRESAS CLIENTES -->
+    <DxDataGrid
+      :data-source="empresas"
+      :show-borders="true"
+      :row-alternation-enabled="true"
+      :hover-state-enabled="true"
+      key-expr="clienteID"
+      class="rounded-xl overflow-hidden"
+    >
+      <DxSearchPanel :visible="true" placeholder="Buscar por institución, RUC o enlace..." :width="280" />
+      <DxPaging :page-size="10" />
+      <DxPager :show-page-size-selector="true" :allowed-page-sizes="[5, 10, 20]" :show-info="true" />
+
+      <!-- Regla 2.12: Columnas declaradas estrictamente en una sola línea -->
+      <DxColumn data-field="nombreComercial" caption="Institución" cell-template="institucionTemplate" />
+      <DxColumn data-field="ruc" caption="RUC" :width="130" alignment="center" cell-template="rucTemplate" />
+      <DxColumn data-field="subdominioSIAPP" caption="Subdominio SIAPP" :width="200" cell-template="subdominioTemplate" />
+      <DxColumn data-field="codigoConexion" caption="Código de Enlace" :width="140" alignment="center" cell-template="codigoTemplate" />
+      <DxColumn data-field="tipoCobro" caption="Modalidad" :width="130" cell-template="modalidadTemplate" />
+      <DxColumn caption="Tarifa / Monto" :width="140" alignment="right" cell-template="tarifaTemplate" />
+      <DxColumn caption="Contacto" :width="200" cell-template="contactoTemplate" />
+      <DxColumn caption="Manuales MINEDU" :width="210" alignment="center" cell-template="accionesTemplate" />
+
+      <!-- Templates personalizados -->
+      <template #institucionTemplate="{ data }">
+        <div>
+          <strong class="text-slate-900 dark:text-white block text-sm">{{ data.nombreComercial }}</strong>
+          <span class="text-[11px] text-slate-400 block truncate max-w-[220px]">{{ data.razonSocial }}</span>
+        </div>
+      </template>
+
+      <template #rucTemplate="{ data }">
+        <span class="font-mono font-bold text-slate-700 dark:text-slate-200">{{ data.ruc }}</span>
+      </template>
+
+      <template #subdominioTemplate="{ data }">
+        <a :href="'https://' + data.subdominioSIAPP" target="_blank" class="text-blue-600 hover:underline font-mono text-xs">
+          {{ data.subdominioSIAPP }}
+        </a>
+      </template>
+
+      <template #codigoTemplate="{ data }">
+        <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono font-bold text-[11px] text-indigo-600 dark:text-indigo-400">
+          {{ data.codigoConexion || 'default' }}
+        </span>
+      </template>
+
+      <template #modalidadTemplate="{ data }">
+        <span :class="data.tipoCobro === 'POR_ALUMNO' ? 'text-indigo-600 font-semibold' : 'text-slate-600 font-semibold'">
+          {{ data.tipoCobro === 'POR_ALUMNO' ? 'Por Alumno' : 'Monto Fijo' }}
+        </span>
+      </template>
+
+      <template #tarifaTemplate="{ data }">
+        <span class="font-mono font-bold">
+          {{ data.tipoCobro === 'POR_ALUMNO' ? 'S/ ' + (data.tarifaPorAlumno ? data.tarifaPorAlumno.toFixed(2) : '4.00') : 'S/ ' + (data.montoFijoPactado ? data.montoFijoPactado.toFixed(2) : '1,500.00') }}
+        </span>
+      </template>
+
+      <template #contactoTemplate="{ data }">
+        <div>
+          <span class="block font-semibold text-xs text-slate-800 dark:text-slate-200">{{ data.contactoPrincipal }}</span>
+          <span class="text-[10px] text-slate-400 truncate block">{{ data.emailContacto }}</span>
+        </div>
+      </template>
+
+      <template #accionesTemplate="{ data }">
+        <DxButton
+          :text="'Manuales (' + contarManualesEmpresa(data.clienteID, manualesSubidos) + '/' + totalManualesFijos + ')'"
+          icon="folder"
+          type="default"
+          styling-mode="outlined"
+          @click="$emit('ver-manuales', data)"
+        />
+      </template>
+    </DxDataGrid>
   </div>
 </template>

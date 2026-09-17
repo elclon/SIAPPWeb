@@ -1,6 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import AdminPortalCliente from '../../components/portal/AdminPortalCliente.vue';
+// Theme oficial Fluent SaaS de SIAPPClient
+import 'devextreme/dist/css/dx.fluent.saas.light.css';
 ---
 
 <Layout
@@ -40,8 +42,8 @@ import AdminPortalCliente from '../../components/portal/AdminPortalCliente.vue';
         </a>
       </div>
 
-      <!-- Componente Vue SuperAdmin -->
-      <AdminPortalCliente client:load />
+      <!-- Componente Vue SuperAdmin (Cargado en cliente para DevExtreme) -->
+      <AdminPortalCliente client:only="vue" />
     </div>
   </div>
 </Layout>
