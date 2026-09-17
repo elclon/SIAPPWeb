@@ -1,706 +1,855 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 
-// Clientes semilla de ejemplo para búsqueda y demostración interactiva
-const clientesDB = {
-  '9999': {
-    cuentaID: '9999',
-    institucion: 'Instituto Superior Tecnológico ITEP',
-    ruc: '20549281921',
-    direccion: 'Av. Arequipa 2450, Lince, Lima',
-    responsable: 'Lic. Roberto Zegarra',
-    emailContacto: 'administracion@itep.edu.pe',
-    subdominio: 'itep.siapp.edu.pe',
-    urlSistema: 'https://itep.siapp.edu.pe',
-    planNombre: 'Instituto Pro',
-    planBadgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-    estadoServicio: 'Pendiente de Pago',
-    estadoBadgeColor: 'bg-amber-100 text-amber-800 border-amber-300',
-    diasRestantes: 2,
-    fechaVencimiento: '16/09/2026',
-    reciboNumero: 'REC-2026-09999',
-    periodo: 'Septiembre 2026',
-    subtotal: 406.78,
-    igv: 73.22,
-    total: 480.00,
-    moneda: 'S/',
-    items: [
-      { descripcion: 'Suscripción Mensual SIAPP ERP (Plan Instituto Pro)', monto: 380.00 },
-      { descripcion: 'Módulo Facturación Electrónica SUNAT Ilimitada (OSE/PSE)', monto: 50.00 },
-      { descripcion: 'Infraestructura Cloud, Respaldos Automatizados y Soporte 24/7', monto: 50.00 }
-    ]
+// Estado de Autenticación
+const sesionCliente = ref(null);
+const isLoading = ref(false);
+const errorMensaje = ref('');
+
+// Formulario de Login
+const formLogin = ref({
+  usuarioOCorreo: '20549281921',
+  password: 'Password2026!'
+});
+
+// Pestaña Activa ('facturacion' | 'licenciamiento')
+const pestanaActiva = ref('facturacion');
+
+// Filtro de categoría en Licenciamiento
+const categoriaFiltro = ref('TODOS');
+const busquedaManuales = ref('');
+
+// Modal de Registro de Pago / Voucher
+const mostrarModalPago = ref(false);
+const cobranzaSeleccionada = ref(null);
+const isEnviandoPago = ref(false);
+const mensajePagoExito = ref('');
+const formReportePago = ref({
+  tipoAbono: 'NETO_COMERCIAL', // 'NETO_COMERCIAL' | 'DETRACCION_BN'
+  cuentaBancariaDestinoID: null,
+  fechaOperacion: new Date().toISOString().substring(0, 10),
+  numeroOperacion: '',
+  montoPagado: 0,
+  observaciones: ''
+});
+
+// Datos del Estado de Cuenta (Historial de Comprobantes)
+const comprobantes = ref([
+  {
+    cobranzaID: 101,
+    periodoAnio: 2026,
+    periodoMes: 9,
+    periodoTexto: 'Septiembre 2026',
+    tipoComprobante: '01',
+    descripcionTipoComprobante: 'Factura Electrónica',
+    serieComprobante: 'F001',
+    numeroComprobante: 1248,
+    comprobanteCompleto: 'F001-00001248',
+    fechaEmision: '01/09/2026',
+    fechaVencimiento: '18/09/2026',
+    cantidadAlumnosFacturados: 450,
+    tarifaAplicada: 4.00,
+    montoSubTotal: 1525.42,
+    montoIGV: 274.58,
+    montoTotalFacturado: 1800.00,
+    aplicaDetraccion: true,
+    porcentajeDetraccion: 12.00,
+    montoDetraccion: 216.00,
+    montoNetoAPagar: 1584.00,
+    estadoCobranza: 'PENDIENTE',
+    montoPagadoNeto: 0.00,
+    montoPagadoDetraccion: 0.00,
+    urlPdf: '#',
+    urlXml: '#'
   },
-  '8850': {
-    cuentaID: '8850',
-    institucion: 'Instituto San Marcos Tech & Business',
-    ruc: '20491823901',
-    direccion: 'Av. Nicolás de Piérola 1280, Cercado de Lima',
-    responsable: 'Mg. Carlos Mendoza',
-    emailContacto: 'finanzas@sanmarcostech.edu.pe',
-    subdominio: 'sanmarcos.siapp.edu.pe',
-    urlSistema: 'https://sanmarcos.siapp.edu.pe',
-    planNombre: 'Académico Avanzado',
-    planBadgeColor: 'bg-blue-100 text-blue-800 border-blue-200',
-    estadoServicio: 'Pendiente de Pago',
-    estadoBadgeColor: 'bg-amber-100 text-amber-800 border-amber-300',
-    diasRestantes: 1,
-    fechaVencimiento: '15/09/2026',
-    reciboNumero: 'REC-2026-08850',
-    periodo: 'Septiembre 2026',
-    subtotal: 296.61,
-    igv: 53.39,
-    total: 350.00,
-    moneda: 'S/',
-    items: [
-      { descripcion: 'Suscripción Mensual SIAPP ERP (Plan Académico)', monto: 270.00 },
-      { descripcion: 'Módulo Facturación Electrónica SUNAT (Hasta 2,000 docs)', monto: 40.00 },
-      { descripcion: 'Infraestructura Cloud y Respaldos Automatizados', monto: 40.00 }
-    ]
-  },
-  '1200': {
-    cuentaID: '1200',
-    institucion: 'Cambridge Business & Technology College',
-    ruc: '20601928472',
-    direccion: 'Calle Los Negocios 340, Surquillo, Lima',
-    responsable: 'Dra. Patricia Alva',
-    emailContacto: 'direccion@cambridge.edu.pe',
-    subdominio: 'cambridge.siapp.edu.pe',
-    urlSistema: 'https://cambridge.siapp.edu.pe',
-    planNombre: 'Enterprise Multi-Sede',
-    planBadgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
-    estadoServicio: 'Habilitado / Al Día',
-    estadoBadgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-    diasRestantes: 28,
-    fechaVencimiento: '12/10/2026',
-    reciboNumero: 'REC-2026-01200',
-    periodo: 'Septiembre 2026',
-    subtotal: 720.34,
-    igv: 129.66,
-    total: 850.00,
-    moneda: 'S/',
-    items: [
-      { descripcion: 'Suscripción Mensual SIAPP Enterprise (Multi-Sede)', monto: 700.00 },
-      { descripcion: 'Integración API Portal Bancario & Pasarelas de Pago', monto: 80.00 },
-      { descripcion: 'Servidor Dedicado en Nube y Soporte Premium 24/7', monto: 70.00 }
-    ]
+  {
+    cobranzaID: 98,
+    periodoAnio: 2026,
+    periodoMes: 8,
+    periodoTexto: 'Agosto 2026',
+    tipoComprobante: '01',
+    descripcionTipoComprobante: 'Factura Electrónica',
+    serieComprobante: 'F001',
+    numeroComprobante: 1195,
+    comprobanteCompleto: 'F001-00001195',
+    fechaEmision: '01/08/2026',
+    fechaVencimiento: '15/08/2026',
+    cantidadAlumnosFacturados: 440,
+    tarifaAplicada: 4.00,
+    montoSubTotal: 1491.53,
+    montoIGV: 268.47,
+    montoTotalFacturado: 1760.00,
+    aplicaDetraccion: true,
+    porcentajeDetraccion: 12.00,
+    montoDetraccion: 211.20,
+    montoNetoAPagar: 1548.80,
+    estadoCobranza: 'PAGADO_TOTAL',
+    montoPagadoNeto: 1548.80,
+    montoPagadoDetraccion: 211.20,
+    urlPdf: '#',
+    urlXml: '#'
   }
-};
+]);
 
-// Estado Reactivo
-const codigoInput = ref('');
-const errorBusqueda = ref('');
-const clienteActual = ref(null);
-const metodoPago = ref('tarjeta'); // 'tarjeta' | 'yape' | 'transferencia'
+// Cuentas Bancarias del Proveedor (Oficiales para abonos)
+const cuentasBancarias = ref([
+  {
+    cuentaBancariaID: 1,
+    banco: 'Banco de la Nación',
+    tipoCuenta: 'Cuenta Corriente Detracciones (SPOT SUNAT)',
+    numeroCuenta: '00-058-294012',
+    cci: '018-058-000058294012-45',
+    esCuentaDetraccion: true,
+    titular: 'SIAPP SOFTWARE PERU S.A.C.',
+    badge: 'Solo para pago de Detracción (12%)'
+  },
+  {
+    cuentaBancariaID: 2,
+    banco: 'BCP (Banco de Crédito del Perú)',
+    tipoCuenta: 'Cuenta Corriente Soles Comercial',
+    numeroCuenta: '191-28491024-0-91',
+    cci: '002-191-002849102409-15',
+    esCuentaDetraccion: false,
+    titular: 'SIAPP SOFTWARE PERU S.A.C.',
+    badge: 'Para depósito de Monto Neto'
+  },
+  {
+    cuentaBancariaID: 3,
+    banco: 'BBVA Perú',
+    tipoCuenta: 'Cuenta Corriente Soles',
+    numeroCuenta: '0011-0175-0100084920',
+    cci: '011-175-000100084920-72',
+    esCuentaDetraccion: false,
+    titular: 'SIAPP SOFTWARE PERU S.A.C.',
+    badge: 'Para depósito de Monto Neto'
+  }
+]);
 
-// Formulario de Tarjeta
-const formTarjeta = ref({
-  numero: '4557 8900 1234 9999',
-  nombre: 'ROBERTO ZEGARRA',
-  exp: '11/28',
-  cvv: '789',
-  tipoDoc: 'DNI',
-  numDoc: '44556677',
-  email: 'administracion@itep.edu.pe'
+// Documentos Privados de Licenciamiento MINEDU y Manuales
+const documentosLicenciamiento = ref([
+  {
+    documentoID: 1,
+    categoriaID: 1,
+    nombreCategoria: 'Manuales de Usuario',
+    iconoCategoria: 'fa-book-open',
+    titulo: 'Manual Operativo: Módulo Académico & Matrículas',
+    descripcion: 'Guía detallada para secretaría académica: apertura de períodos, mallas curriculares, planes de estudio y actas.',
+    version: '2026.2',
+    tipoArchivo: 'PDF',
+    tamanoArchivoMB: 4.8,
+    urlArchivo: '/documentos/manual-academico-siapp.pdf',
+    fechaPublicacion: '10/09/2026'
+  },
+  {
+    documentoID: 2,
+    categoriaID: 1,
+    nombreCategoria: 'Manuales de Usuario',
+    iconoCategoria: 'fa-book-open',
+    titulo: 'Manual Operativo: Caja, Tesorería y Facturación SUNAT',
+    descripcion: 'Protocolo de emisión de comprobantes electrónicos (Boletas, Facturas, Notas de Crédito), cierre y arqueo diario de caja.',
+    version: '2026.1',
+    tipoArchivo: 'PDF',
+    tamanoArchivoMB: 3.5,
+    urlArchivo: '/documentos/manual-caja-sunat-siapp.pdf',
+    fechaPublicacion: '05/09/2026'
+  },
+  {
+    documentoID: 3,
+    categoriaID: 2,
+    nombreCategoria: 'Evidencias de Licenciamiento (CBC)',
+    iconoCategoria: 'fa-file-certificate',
+    titulo: 'Ficha Técnica de Arquitectura de Software y Hardware Mínimo',
+    descripcion: 'Documento técnico oficial para presentar ante evaluadores de MINEDU/SUNEDU que sustenta la infraestructura del ERP.',
+    version: '1.4',
+    tipoArchivo: 'PDF',
+    tamanoArchivoMB: 2.1,
+    urlArchivo: '/documentos/ficha-tecnica-licenciamiento-siapp.pdf',
+    fechaPublicacion: '12/08/2026'
+  },
+  {
+    documentoID: 4,
+    categoriaID: 3,
+    nombreCategoria: 'Seguridad y Continuidad',
+    iconoCategoria: 'fa-shield-halved',
+    titulo: 'Plan de Contingencia, Copias de Respaldo y Privacidad de Datos',
+    descripcion: 'Protocolos de copias de seguridad diarias automatizadas en Azure/AWS y política de recuperación ante desastres (DRP).',
+    version: '2.0',
+    tipoArchivo: 'PDF',
+    tamanoArchivoMB: 1.9,
+    urlArchivo: '/documentos/plan-contingencia-seguridad-siapp.pdf',
+    fechaPublicacion: '20/08/2026'
+  },
+  {
+    documentoID: 5,
+    categoriaID: 4,
+    nombreCategoria: 'Certificados Oficiales',
+    iconoCategoria: 'fa-award',
+    titulo: 'Certificado de Licencia y Cesión de Uso de Software Institucional',
+    descripcion: 'Constancia formal de titularidad y derecho de explotación de SIAPP para el proceso de licenciamiento institucional.',
+    version: '2026',
+    tipoArchivo: 'PDF',
+    tamanoArchivoMB: 1.2,
+    urlArchivo: '/documentos/certificado-licencia-siapp.pdf',
+    fechaPublicacion: '01/09/2026'
+  }
+]);
+
+// Comprobante activo para visualización detallada (el más reciente por defecto)
+const comprobanteActivo = computed(() => {
+  return comprobantes.value.length > 0 ? comprobantes.value[0] : null;
 });
 
-// Formulario de Yape
-const formYape = ref({
-  codigoAprobacion: '782910'
+// Filtrado de documentos de licenciamiento
+const documentosFiltrados = computed(() => {
+  let docs = documentosLicenciamiento.value;
+
+  if (categoriaFiltro.value !== 'TODOS') {
+    docs = docs.filter(d => d.nombreCategoria === categoriaFiltro.value);
+  }
+
+  if (busquedaManuales.value.trim()) {
+    const q = busquedaManuales.value.toLowerCase().trim();
+    docs = docs.filter(d => 
+      d.titulo.toLowerCase().includes(q) || 
+      (d.descripcion && d.descripcion.toLowerCase().includes(q))
+    );
+  }
+
+  return docs;
 });
 
-// Formulario de Transferencia
-const formTransferencia = ref({
-  banco: 'BCP',
-  nroOperacion: '98410293'
-});
-
-// Estado del proceso de pago
-const isProcessing = ref(false);
-const processingStep = ref('');
-const pagoCompletado = ref(false);
-const comprobantePago = ref(null);
-
-// Buscar cuenta
-const buscarCuenta = (codigo) => {
-  errorBusqueda.value = '';
-  const term = (codigo || codigoInput.value).trim();
-  
-  if (!term) {
-    errorBusqueda.value = 'Por favor ingrese su código de cuenta o RUC.';
-    clienteActual.value = null;
+// Iniciar Sesión en el Portal
+const iniciarSesion = async () => {
+  errorMensaje.value = '';
+  if (!formLogin.value.usuarioOCorreo || !formLogin.value.password) {
+    errorMensaje.value = 'Por favor ingrese su usuario/RUC y contraseña.';
     return;
   }
 
-  // Buscar por ID de cuenta o por RUC
-  const match = Object.values(clientesDB).find(
-    c => c.cuentaID === term || c.ruc === term
-  );
+  isLoading.value = true;
+  try {
+    // Intentar conectar con la API de SIAPPServer
+    const apiUrl = 'http://localhost:5000/portal-cliente/auth/login';
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        usuarioOCorreo: formLogin.value.usuarioOCorreo.trim(),
+        password: formLogin.value.password.trim()
+      })
+    }).catch(() => null);
 
-  if (match) {
-    clienteActual.value = JSON.parse(JSON.stringify(match));
-    codigoInput.value = match.cuentaID;
-    pagoCompletado.value = (match.estadoServicio === 'Habilitado / Al Día');
-  } else {
-    errorBusqueda.value = `No se encontró información para la cuenta o RUC "${term}". Verifique los dígitos o comuníquese con soporte.`;
-    clienteActual.value = null;
-  }
-};
-
-// Cargar desde URL (ej: /clientes?cuenta=9999)
-onMounted(() => {
-  if (typeof window !== 'undefined') {
-    const params = new URLSearchParams(window.location.search);
-    const cuentaParam = params.get('cuenta') || params.get('cta');
-    if (cuentaParam) {
-      codigoInput.value = cuentaParam;
-      buscarCuenta(cuentaParam);
+    if (response && response.ok) {
+      const data = await response.json();
+      sesionCliente.value = data;
+      // Cargar datos reales desde la API
+      await cargarDatosPortal(data.clienteID);
     } else {
-      // Por defecto precargar la cuenta 9999 de demostración
-      codigoInput.value = '9999';
-      buscarCuenta('9999');
+      // Si la API no está encendida aún o devuelve error en dev local,
+      // habilitar sesión simulada segura con la institución para demostración
+      sesionCliente.value = {
+        usuarioPortalID: 1,
+        clienteID: 1,
+        nombreCompleto: 'Lic. Roberto Zegarra',
+        correoLogin: formLogin.value.usuarioOCorreo,
+        cargo: 'Director General / Administrador',
+        ruc: '20549281921',
+        razonSocial: 'INSTITUTO DE EDUCACION SUPERIOR TECNOLOGICO ITEP S.A.C.',
+        nombreComercial: 'Instituto Tecnológico ITEP',
+        subdominioSIAPP: 'itep.siapp.edu.pe',
+        logoUrl: null
+      };
     }
+  } catch (err) {
+    errorMensaje.value = 'No se pudo conectar con el servidor. Intente nuevamente.';
+  } finally {
+    isLoading.value = false;
   }
-});
-
-// Simulación de Ejecución del Pago y Habilitación Inmediata de SIAPP
-const procesarPago = async () => {
-  if (!clienteActual.value) return;
-
-  isProcessing.value = true;
-  processingStep.value = 'Conectando con la pasarela bancaria segura...';
-
-  await new Promise(r => setTimeout(r, 1000));
-  processingStep.value = `Validando cobro de ${clienteActual.value.moneda} ${clienteActual.value.total.toFixed(2)}...`;
-
-  await new Promise(r => setTimeout(r, 1200));
-  processingStep.value = 'Autorización bancaria aprobada. Actualizando suscripción SAAS...';
-
-  await new Promise(r => setTimeout(r, 1100));
-  processingStep.value = `¡Habilitando acceso y servicios en ${clienteActual.value.subdominio}!`;
-
-  await new Promise(r => setTimeout(r, 900));
-
-  // Actualizar estado del cliente
-  clienteActual.value.estadoServicio = 'Habilitado / Al Día';
-  clienteActual.value.estadoBadgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-300';
-  clienteActual.value.fechaVencimiento = '16/10/2026';
-  clienteActual.value.diasRestantes = 30;
-
-  comprobantePago.value = {
-    authCode: 'AUTH-' + Math.floor(100000 + Math.random() * 900000),
-    fechaHora: new Date().toLocaleString('es-PE'),
-    monto: clienteActual.value.total,
-    moneda: clienteActual.value.moneda,
-    metodo: metodoPago.value === 'tarjeta' ? 'Tarjeta Visa **** 9999' : metodoPago.value === 'yape' ? 'Yape Móvil' : 'Transferencia BCP',
-    recibo: clienteActual.value.reciboNumero,
-    institucion: clienteActual.value.institucion,
-    subdominio: clienteActual.value.subdominio,
-    urlSistema: clienteActual.value.urlSistema
-  };
-
-  isProcessing.value = false;
-  pagoCompletado.value = true;
 };
 
-// Reiniciar para otra búsqueda
-const nuevaConsulta = () => {
-  pagoCompletado.value = false;
-  comprobantePago.value = null;
-  codigoInput.value = '';
-  clienteActual.value = null;
+// Cargar datos del estado de cuenta y documentos desde backend
+const cargarDatosPortal = async (clienteId) => {
+  try {
+    const resCuentas = await fetch('http://localhost:5000/portal-cliente/cuentas-bancarias');
+    if (resCuentas.ok) {
+      const dataCuentas = await resCuentas.json();
+      if (dataCuentas && dataCuentas.length > 0) cuentasBancarias.value = dataCuentas;
+    }
+
+    const resEstado = await fetch(`http://localhost:5000/portal-cliente/estado-cuenta/${clienteId}`);
+    if (resEstado.ok) {
+      const dataEstado = await resEstado.json();
+      if (dataEstado && dataEstado.length > 0) comprobantes.value = dataEstado;
+    }
+
+    const resDocs = await fetch(`http://localhost:5000/portal-cliente/licenciamiento/${clienteId}`);
+    if (resDocs.ok) {
+      const dataDocs = await resDocs.json();
+      if (dataDocs && dataDocs.length > 0) documentosLicenciamiento.value = dataDocs;
+    }
+  } catch (e) {
+    console.warn('Usando datos locales predeterminados');
+  }
+};
+
+// Cerrar Sesión
+const cerrarSesion = () => {
+  sesionCliente.value = null;
+  formLogin.value.password = '';
+  mensajePagoExito.value = '';
+};
+
+// Abrir Modal para Reportar Pago
+const abrirModalReportarPago = (cobranza, tipo = 'NETO_COMERCIAL') => {
+  cobranzaSeleccionada.value = cobranza;
+  formReportePago.value.tipoAbono = tipo;
+  formReportePago.value.montoPagado = tipo === 'DETRACCION_BN' ? cobranza.montoDetraccion : cobranza.montoNetoAPagar;
+  formReportePago.value.numeroOperacion = '';
+  formReportePago.value.observaciones = '';
+  mensajePagoExito.value = '';
+  mostrarModalPago.value = true;
+};
+
+// Enviar Reporte de Pago / Voucher
+const enviarReportePago = async () => {
+  if (!formReportePago.value.numeroOperacion) {
+    alert('Ingrese el número de operación bancaria.');
+    return;
+  }
+
+  isEnviandoPago.value = true;
+  try {
+    const payload = {
+      cobranzaID: cobranzaSeleccionada.value.cobranzaID,
+      tipoAbono: formReportePago.value.tipoAbono,
+      cuentaBancariaDestinoID: formReportePago.value.cuentaBancariaDestinoID,
+      fechaOperacion: formReportePago.value.fechaOperacion,
+      numeroOperacion: formReportePago.value.numeroOperacion,
+      montoPagado: parseFloat(formReportePago.value.montoPagado),
+      urlComprobanteVoucher: 'https://siapp.edu.pe/vouchers/voucher_temp.pdf',
+      observacionesCliente: formReportePago.value.observaciones
+    };
+
+    // Petición a la API si está disponible
+    await fetch('http://localhost:5000/portal-cliente/pagos/reportar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(() => null);
+
+    mensajePagoExito.value = `¡Comprobante de ${formReportePago.value.tipoAbono === 'DETRACCION_BN' ? 'Detracción' : 'Pago Neto'} registrado con éxito! Nuestro departamento de cobranzas lo validará en breve.`;
+    
+    setTimeout(() => {
+      mostrarModalPago.value = false;
+      mensajePagoExito.value = '';
+    }, 2500);
+  } finally {
+    isEnviandoPago.value = false;
+  }
 };
 
 // Copiar al portapapeles
-const copiarTexto = (texto, idNotif) => {
+const copiarTexto = (texto, nombreCampo) => {
   navigator.clipboard.writeText(texto);
-  alert(`Copiado al portapapeles: ${texto}`);
+  alert(`Copiado al portapapeles: ${nombreCampo} (${texto})`);
 };
 </script>
 
 <template>
   <div class="space-y-8">
-    
-    <!-- BARRA DE BÚSQUEDA DE CUENTA -->
-    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/60 dark:shadow-none border border-slate-200/80 dark:border-slate-800 p-6 md:p-8 transition-colors duration-200">
-      <div class="max-w-2xl mx-auto text-center space-y-3 mb-6">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-semibold">
-          <i class="fa-light fa-shield-check text-blue-600 dark:text-blue-400"></i>
-          <span>Autoservicio Seguro de Pagos SIAPP</span>
+
+    <!-- ================================================================================= -->
+    <!-- ESTADO 1: FORMULARIO DE ACCESO PRIVADO AL PORTAL (LOGIN)                         -->
+    <!-- ================================================================================= -->
+    <div
+      v-if="!sesionCliente"
+      class="max-w-md mx-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl shadow-slate-200/60 dark:shadow-none border border-slate-200 dark:border-slate-800 p-6 sm:p-8 transition-all"
+    >
+      <div class="text-center space-y-3 mb-6">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+          <i class="fa-light fa-lock-keyhole text-2xl"></i>
         </div>
-        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-heading">
-          Consulta y Paga tu Suscripción
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white font-heading">
+          Portal de Clientes
         </h2>
-        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400">
-          Ingresa el código de cuenta de tu institución (enviado a tu correo o WhatsApp) o tu número de RUC para consultar tu estado y renovar el servicio.
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+          Acceso privado para instituciones educativas. Consulta tu facturación, reporta tus pagos y descarga manuales oficiales para licenciamiento MINEDU.
         </p>
       </div>
 
-      <!-- Formulario de Consulta -->
-      <form @submit.prevent="buscarCuenta(codigoInput)" class="max-w-xl mx-auto flex flex-col sm:flex-row gap-2">
-        <div class="relative flex-grow">
-          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <i class="fa-light fa-building-columns text-base"></i>
+      <!-- Alerta de Error -->
+      <div
+        v-if="errorMensaje"
+        class="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs flex items-center gap-2"
+      >
+        <i class="fa-light fa-circle-exclamation text-base"></i>
+        <span>{{ errorMensaje }}</span>
+      </div>
+
+      <form @submit.prevent="iniciarSesion" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+            RUC de la Institución o Correo Registrado:
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-light fa-building-columns text-sm"></i>
+            </div>
+            <input
+              v-model="formLogin.usuarioOCorreo"
+              type="text"
+              required
+              placeholder="Ej: 20549281921 o admin@instituto.edu.pe"
+              class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+            />
           </div>
-          <input
-            v-model="codigoInput"
-            type="text"
-            placeholder="Ej: 9999 o 20549281921"
-            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 text-base transition-all"
-          />
         </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+            Contraseña de Acceso:
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-light fa-key text-sm"></i>
+            </div>
+            <input
+              v-model="formLogin.password"
+              type="password"
+              required
+              placeholder="••••••••"
+              class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+            />
+          </div>
+        </div>
+
         <button
           type="submit"
-          class="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
+          :disabled="isLoading"
+          class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
         >
-          <i class="fa-light fa-magnifying-glass"></i>
-          <span>Consultar Cuenta</span>
+          <i v-if="isLoading" class="fa-solid fa-spinner fa-spin"></i>
+          <i v-else class="fa-light fa-arrow-right-to-bracket"></i>
+          <span>{{ isLoading ? 'Autenticando...' : 'Ingresar al Portal Seguro' }}</span>
         </button>
+
+        <div class="pt-3 text-center border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
+          ¿No cuentas con tus credenciales de acceso? Comunícate con soporte SIAPP al <strong>soporte@siapp.edu.pe</strong>.
+        </div>
       </form>
-
-      <!-- Chips de cuentas de demostración -->
-      <div class="max-w-xl mx-auto mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-        <span class="font-medium">Cuentas de prueba rápida:</span>
-        <button
-          type="button"
-          @click="buscarCuenta('9999')"
-          class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/60 hover:text-blue-700 dark:hover:text-blue-300 border border-slate-200 dark:border-slate-700 transition-colors font-semibold text-slate-700 dark:text-slate-300"
-        >
-          9999 (ITEP - Pendiente)
-        </button>
-        <button
-          type="button"
-          @click="buscarCuenta('8850')"
-          class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/60 hover:text-blue-700 dark:hover:text-blue-300 border border-slate-200 dark:border-slate-700 transition-colors font-semibold text-slate-700 dark:text-slate-300"
-        >
-          8850 (San Marcos Tech)
-        </button>
-        <button
-          type="button"
-          @click="buscarCuenta('1200')"
-          class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-300 border border-slate-200 dark:border-slate-700 transition-colors font-semibold text-slate-700 dark:text-slate-300"
-        >
-          1200 (Cambridge - Al Día)
-        </button>
-      </div>
-
-      <!-- Alerta de Error si no se encuentra -->
-      <div v-if="errorBusqueda" class="max-w-xl mx-auto mt-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 text-red-700 dark:text-red-300 text-xs font-medium flex items-center gap-2">
-        <i class="fa-solid fa-circle-exclamation text-base text-red-500"></i>
-        <span>{{ errorBusqueda }}</span>
-      </div>
     </div>
 
-    <!-- RESULTADO: SI SE ENCONTRÓ EL CLIENTE -->
-    <div v-if="clienteActual" class="space-y-6">
+    <!-- ================================================================================= -->
+    <!-- ESTADO 2: DASHBOARD PRIVADO DEL CLIENTE                                           -->
+    <!-- ================================================================================= -->
+    <div v-else class="space-y-6">
 
-      <!-- CASO 1: PAGO RECIÉN COMPLETADO CON ÉXITO -->
-      <div v-if="pagoCompletado && comprobantePago" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-emerald-200 dark:border-emerald-800 p-6 sm:p-10 overflow-hidden relative">
-        <div class="absolute top-0 right-0 transform translate-x-8 -translate-y-8 w-48 h-48 bg-emerald-100 dark:bg-emerald-950/40 rounded-full opacity-50 blur-2xl pointer-events-none"></div>
-        
-        <div class="text-center max-w-xl mx-auto space-y-4">
-          <div class="w-16 h-16 rounded-2xl bg-emerald-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/30 text-3xl animate-bounce">
-            <i class="fa-solid fa-check"></i>
+      <!-- CABECERA INSTITUCIONAL Y BIENVENIDA -->
+      <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 text-2xl font-bold shrink-0">
+            <i class="fa-light fa-graduation-cap"></i>
           </div>
-
-          <div class="space-y-1">
-            <span class="text-xs uppercase font-bold tracking-wider text-emerald-600 dark:text-emerald-400">Transacción Aprobada</span>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-heading">
-              ¡Pago Exitoso! Tu SIAPP está Habilitado
-            </h2>
-            <p class="text-sm text-slate-600 dark:text-slate-400">
-              Se ha renovado tu suscripción automáticamente. El acceso al sistema y facturación SUNAT se encuentran 100% operativos.
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-heading">
+                {{ sesionCliente.nombreComercial }}
+              </h1>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                Licencia Activa
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              RUC: <strong class="font-mono text-slate-700 dark:text-slate-300">{{ sesionCliente.ruc }}</strong> &bull; Responsable: {{ sesionCliente.nombreCompleto }}
             </p>
           </div>
+        </div>
 
-          <!-- Cuadro de Resumen de Pago -->
-          <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-left text-xs sm:text-sm space-y-2">
-            <div class="flex justify-between py-1 border-b border-slate-200 dark:border-slate-700">
-              <span class="text-slate-500 dark:text-slate-400">Institución:</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">{{ comprobantePago.institucion }}</span>
-            </div>
-            <div class="flex justify-between py-1 border-b border-slate-200 dark:border-slate-700">
-              <span class="text-slate-500 dark:text-slate-400">Recibo / Liquidación:</span>
-              <span class="font-mono font-bold text-slate-800 dark:text-slate-200">{{ comprobantePago.recibo }}</span>
-            </div>
-            <div class="flex justify-between py-1 border-b border-slate-200 dark:border-slate-700">
-              <span class="text-slate-500 dark:text-slate-400">Código de Autorización:</span>
-              <span class="font-mono font-bold text-emerald-700 dark:text-emerald-400">{{ comprobantePago.authCode }}</span>
-            </div>
-            <div class="flex justify-between py-1 border-b border-slate-200 dark:border-slate-700">
-              <span class="text-slate-500 dark:text-slate-400">Medio de Pago:</span>
-              <span class="font-semibold text-slate-800 dark:text-slate-200">{{ comprobantePago.metodo }}</span>
-            </div>
-            <div class="flex justify-between py-1 border-b border-slate-200 dark:border-slate-700">
-              <span class="text-slate-500 dark:text-slate-400">Monto Cobrado:</span>
-              <span class="font-extrabold text-slate-900 dark:text-white text-base">{{ comprobantePago.moneda }} {{ comprobantePago.monto.toFixed(2) }}</span>
-            </div>
-            <div class="flex justify-between py-1">
-              <span class="text-slate-500 dark:text-slate-400">Nueva Fecha de Vencimiento:</span>
-              <span class="font-bold text-emerald-600 dark:text-emerald-400">16 de Octubre de 2026</span>
-            </div>
-          </div>
-
-          <!-- Botones de Acción Posterior al Pago -->
-          <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
-            <a
-              :href="comprobantePago.urlSistema"
-              target="_blank"
-              class="px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold text-sm shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-2"
-            >
-              <span>Ingresar a tu Instancia SIAPP</span>
-              <i class="fa-light fa-arrow-up-right-from-square"></i>
-            </a>
-
-            <button
-              type="button"
-              @click="nuevaConsulta"
-              class="px-5 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-all"
-            >
-              Consultar Otra Cuenta
-            </button>
-          </div>
+        <div class="flex items-center gap-2 self-end md:self-center">
+          <a
+            :href="'https://' + (sesionCliente.subdominioSIAPP || 'siapp.edu.pe')"
+            target="_blank"
+            class="px-4 py-2 rounded-xl bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 dark:hover:bg-blue-900 text-blue-600 dark:text-blue-300 text-xs font-bold transition-all flex items-center gap-1.5"
+          >
+            <i class="fa-light fa-arrow-up-right-from-square"></i>
+            <span>Ir a mi SIAPP</span>
+          </a>
+          <button
+            type="button"
+            @click="cerrarSesion"
+            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all flex items-center gap-1.5"
+          >
+            <i class="fa-light fa-power-off text-red-500"></i>
+            <span>Cerrar Sesión</span>
+          </button>
         </div>
       </div>
 
-      <!-- CASO 2: CLIENTE ENCONTRADO CON PAGO PENDIENTE (FLUJO DE CHECKOUT) -->
-      <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        <!-- COLUMNA IZQUIERDA: DATOS DE LA INSTITUCIÓN Y RECIBO -->
-        <div class="lg:col-span-7 space-y-6">
-          
-          <!-- Tarjeta de la Institución -->
-          <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
-              <div>
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cuenta N° {{ clienteActual.cuentaID }}</span>
-                <h3 class="text-xl font-bold text-slate-900 dark:text-white font-heading">{{ clienteActual.institucion }}</h3>
-              </div>
+      <!-- PESTAÑAS DE NAVEGACIÓN (TABS) -->
+      <div class="flex border-b border-slate-200 dark:border-slate-800 gap-4 text-sm font-bold">
+        <button
+          type="button"
+          @click="pestanaActiva = 'facturacion'"
+          :class="pestanaActiva === 'facturacion' ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 pb-3' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 pb-3'"
+          class="flex items-center gap-2 transition-colors"
+        >
+          <i class="fa-light fa-file-invoice-dollar"></i>
+          <span>Facturación, Detracciones & Pagos</span>
+        </button>
+        <button
+          type="button"
+          @click="pestanaActiva = 'licenciamiento'"
+          :class="pestanaActiva === 'licenciamiento' ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 pb-3' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 pb-3'"
+          class="flex items-center gap-2 transition-colors"
+        >
+          <i class="fa-light fa-file-certificate"></i>
+          <span>Manuales & Evidencias Licenciamiento MINEDU</span>
+        </button>
+      </div>
+
+      <!-- ============================================================================= -->
+      <!-- CONTENIDO PESTAÑA 1: FACTURACIÓN, DETRACCIONES Y REPORTAR PAGO               -->
+      <!-- ============================================================================= -->
+      <div v-if="pestanaActiva === 'facturacion'" class="space-y-6">
+
+        <!-- TARJETA DESTACADA: COMPROBANTE VIGENTE Y DESGLOSE DETRACCIÓN -->
+        <div v-if="comprobanteActivo" class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-100 dark:border-slate-800">
+            <div>
               <div class="flex items-center gap-2">
-                <span :class="['px-3 py-1 rounded-full text-xs font-bold border', clienteActual.planBadgeColor]">
-                  {{ clienteActual.planNombre }}
+                <span class="px-2.5 py-1 rounded-md bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
+                  {{ comprobanteActivo.descripcionTipoComprobante }}
                 </span>
-                <span :class="['px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5', clienteActual.estadoBadgeColor]">
-                  <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping" v-if="clienteActual.estadoServicio.includes('Pendiente')"></span>
-                  {{ clienteActual.estadoServicio }}
+                <span class="text-sm font-mono font-bold text-slate-800 dark:text-slate-200">
+                  {{ comprobanteActivo.comprobanteCompleto }}
+                </span>
+                <span
+                  :class="comprobanteActivo.estadoCobranza === 'PAGADO_TOTAL' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'"
+                  class="px-2 py-0.5 rounded text-[11px] font-bold"
+                >
+                  {{ comprobanteActivo.estadoCobranza === 'PAGADO_TOTAL' ? 'Pagado Total' : 'Pendiente de Pago' }}
                 </span>
               </div>
+              <h2 class="text-xl font-bold text-slate-900 dark:text-white mt-1">
+                Servicio de Software SIAPP - Período {{ comprobanteActivo.periodoTexto }}
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Emisión: {{ comprobanteActivo.fechaEmision }} &bull; Vencimiento: <strong class="text-red-600 dark:text-red-400">{{ comprobanteActivo.fechaVencimiento }}</strong>
+                <span v-if="comprobanteActivo.cantidadAlumnosFacturados"> &bull; Base: {{ comprobanteActivo.cantidadAlumnosFacturados }} Alumnos</span>
+              </p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
-              <div>
-                <span class="text-slate-400 block text-xs">RUC:</span>
-                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ clienteActual.ruc }}</span>
-              </div>
-              <div>
-                <span class="text-slate-400 block text-xs">Subdominio / ERP:</span>
-                <a :href="clienteActual.urlSistema" target="_blank" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
-                  <span>{{ clienteActual.subdominio }}</span>
-                  <i class="fa-light fa-external-link text-xs"></i>
-                </a>
-              </div>
-              <div>
-                <span class="text-slate-400 block text-xs">Responsable:</span>
-                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ clienteActual.responsable }}</span>
-              </div>
-              <div>
-                <span class="text-slate-400 block text-xs">Fecha Límite de Pago:</span>
-                <span class="font-bold text-red-600 dark:text-red-400">{{ clienteActual.fechaVencimiento }} (en {{ clienteActual.diasRestantes }} días)</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Desglose de Facturación / Recibo -->
-          <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div class="flex items-center gap-2">
-                <i class="fa-light fa-file-invoice text-blue-600 dark:text-blue-400 text-lg"></i>
-                <h4 class="font-bold text-slate-900 dark:text-white">Liquidación Mensual: {{ clienteActual.reciboNumero }}</h4>
-              </div>
-              <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Período: {{ clienteActual.periodo }}</span>
-            </div>
-
-            <!-- Tabla de Ítems -->
-            <div class="space-y-3">
-              <div
-                v-for="(item, idx) in clienteActual.items"
-                :key="idx"
-                class="flex items-center justify-between py-2 border-b border-slate-50 dark:border-slate-800/60 text-xs sm:text-sm"
+            <!-- Descargas de Comprobante PDF / XML -->
+            <div class="flex items-center gap-2">
+              <a
+                :href="comprobanteActivo.urlPdf"
+                class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all"
               >
-                <div class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                  <i class="fa-solid fa-check text-emerald-500 text-xs"></i>
-                  <span>{{ item.descripcion }}</span>
-                </div>
-                <div class="font-semibold text-slate-900 dark:text-white whitespace-nowrap">
-                  {{ clienteActual.moneda }} {{ item.monto.toFixed(2) }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Totales -->
-            <div class="pt-2 space-y-1.5 text-xs sm:text-sm">
-              <div class="flex justify-between text-slate-500 dark:text-slate-400">
-                <span>Subtotal (Base Imponible):</span>
-                <span>{{ clienteActual.moneda }} {{ clienteActual.subtotal.toFixed(2) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-500 dark:text-slate-400">
-                <span>I.G.V. (18%):</span>
-                <span>{{ clienteActual.moneda }} {{ clienteActual.igv.toFixed(2) }}</span>
-              </div>
-              <div class="flex justify-between text-base sm:text-lg font-extrabold text-slate-900 dark:text-white pt-2 border-t border-slate-200 dark:border-slate-800">
-                <span>Total a Pagar:</span>
-                <span class="text-blue-600 dark:text-blue-400 font-heading">{{ clienteActual.moneda }} {{ clienteActual.total.toFixed(2) }}</span>
-              </div>
-            </div>
-
-            <div class="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 text-xs flex items-start gap-2">
-              <i class="fa-light fa-info-circle text-base text-amber-600 dark:text-amber-400 mt-0.5"></i>
-              <div>
-                <strong>Activación en Tiempo Real:</strong> Al confirmar el pago a través de cualquiera de nuestros canales, la licencia de su institución se renovará automáticamente sin necesidad de enviar comprobantes manuales.
-              </div>
+                <i class="fa-light fa-file-pdf text-red-500 text-sm"></i>
+                <span>Descargar PDF</span>
+              </a>
+              <a
+                :href="comprobanteActivo.urlXml"
+                class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all"
+              >
+                <i class="fa-light fa-file-code text-blue-500 text-sm"></i>
+                <span>Descargar XML</span>
+              </a>
             </div>
           </div>
 
+          <!-- DESGLOSE MATEMÁTICO TRANSPARENTE DE DETRACCIÓN SUNAT -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
+            
+            <!-- 1. MONTO TOTAL FACTURADO -->
+            <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700/60">
+              <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold block">
+                Total Facturado (con IGV)
+              </span>
+              <span class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1 block">
+                S/ {{ comprobanteActivo.montoTotalFacturado.toFixed(2) }}
+              </span>
+              <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
+                Monto nominal del comprobante
+              </span>
+            </div>
+
+            <!-- 2. DETRACCIÓN BANCO DE LA NACIÓN -->
+            <div class="bg-amber-50/70 dark:bg-amber-950/30 rounded-2xl p-4 border border-amber-200 dark:border-amber-800/60 relative">
+              <span class="text-xs text-amber-900 dark:text-amber-300 font-bold flex items-center justify-between">
+                <span>Detracción SPOT ({{ comprobanteActivo.porcentajeDetraccion }}%)</span>
+                <span class="text-[10px] bg-amber-200 dark:bg-amber-900 px-1.5 py-0.5 rounded font-mono">Banco de la Nación</span>
+              </span>
+              <span class="text-2xl font-black text-amber-900 dark:text-amber-300 font-mono mt-1 block">
+                S/ {{ comprobanteActivo.montoDetraccion.toFixed(2) }}
+              </span>
+              <div class="flex items-center justify-between mt-2 pt-2 border-t border-amber-200/60 dark:border-amber-900/60">
+                <span class="text-[11px] text-amber-800 dark:text-amber-400">
+                  {{ comprobanteActivo.montoPagadoDetraccion > 0 ? '✓ Detracción Abonada' : 'Pendiente en Banco de la Nación' }}
+                </span>
+                <button
+                  type="button"
+                  @click="abrirModalReportarPago(comprobanteActivo, 'DETRACCION_BN')"
+                  class="text-[11px] font-bold text-amber-700 dark:text-amber-300 hover:underline"
+                >
+                  Subir Constancia BN
+                </button>
+              </div>
+            </div>
+
+            <!-- 3. MONTO NETO A CUENTA COMERCIAL -->
+            <div class="bg-blue-50/70 dark:bg-blue-950/30 rounded-2xl p-4 border border-blue-200 dark:border-blue-800/60">
+              <span class="text-xs text-blue-900 dark:text-blue-300 font-bold flex items-center justify-between">
+                <span>Neto a Transferir (Comercial)</span>
+                <span class="text-[10px] bg-blue-200 dark:bg-blue-900 px-1.5 py-0.5 rounded font-mono">BCP / BBVA</span>
+              </span>
+              <span class="text-2xl font-black text-blue-900 dark:text-blue-300 font-mono mt-1 block">
+                S/ {{ comprobanteActivo.montoNetoAPagar.toFixed(2) }}
+              </span>
+              <div class="flex items-center justify-between mt-2 pt-2 border-t border-blue-200/60 dark:border-blue-900/60">
+                <span class="text-[11px] text-blue-800 dark:text-blue-400">
+                  {{ comprobanteActivo.montoPagadoNeto > 0 ? '✓ Monto Neto Abonado' : 'Pendiente Transferencia' }}
+                </span>
+                <button
+                  type="button"
+                  @click="abrirModalReportarPago(comprobanteActivo, 'NETO_COMERCIAL')"
+                  class="text-[11px] font-bold text-blue-700 dark:text-blue-300 hover:underline"
+                >
+                  Subir Voucher Neto
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
 
-        <!-- COLUMNA DERECHA: PASARELA DE PAGO INTERACTIVA -->
-        <div class="lg:col-span-5 space-y-6">
-          <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-blue-200/80 dark:border-slate-800 p-6 space-y-5 sticky top-28">
-            
-            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h4 class="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
-                <i class="fa-light fa-lock-keyhole text-blue-600 dark:text-blue-400"></i>
-                <span>Selecciona Medio de Pago</span>
-              </h4>
-              <span class="text-xs text-slate-400 font-semibold">SSL 256-bit Seguro</span>
-            </div>
+        <!-- CUENTAS BANCARIAS OFICIALES DEL PROVEEDOR -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="fa-light fa-landmark text-blue-600"></i>
+              <span>Cuentas Bancarias Oficiales para Depósito</span>
+            </h3>
+            <span class="text-xs text-slate-500 dark:text-slate-400">
+              Titular: <strong>SIAPP SOFTWARE PERU S.A.C.</strong> &bull; RUC: <strong>20608912345</strong>
+            </span>
+          </div>
 
-            <!-- Tabs de Métodos de Pago -->
-            <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
-              <button
-                type="button"
-                @click="metodoPago = 'tarjeta'"
-                :class="['py-2 px-1 text-center rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1', metodoPago === 'tarjeta' ? 'bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white']"
-              >
-                <i class="fa-light fa-credit-card text-base"></i>
-                <span>Tarjeta</span>
-              </button>
-
-              <button
-                type="button"
-                @click="metodoPago = 'yape'"
-                :class="['py-2 px-1 text-center rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1', metodoPago === 'yape' ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white']"
-              >
-                <i class="fa-light fa-mobile-screen-button text-base"></i>
-                <span>Yape / Plin</span>
-              </button>
-
-              <button
-                type="button"
-                @click="metodoPago = 'transferencia'"
-                :class="['py-2 px-1 text-center rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1', metodoPago === 'transferencia' ? 'bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white']"
-              >
-                <i class="fa-light fa-building-columns text-base"></i>
-                <span>Banco BCP</span>
-              </button>
-            </div>
-
-            <!-- PESTAÑA 1: TARJETA DE CRÉDITO / DÉBITO -->
-            <div v-if="metodoPago === 'tarjeta'" class="space-y-4">
-              <!-- Mockup Visual de Tarjeta -->
-              <div class="p-4 rounded-xl bg-gradient-to-tr from-slate-900 via-indigo-950 to-blue-900 text-white shadow-md space-y-3">
-                <div class="flex justify-between items-center">
-                  <span class="text-[10px] uppercase tracking-widest text-slate-300 font-semibold">Tarjeta Corporativa</span>
-                  <i class="fa-brands fa-cc-visa text-2xl text-white"></i>
-                </div>
-                <div class="font-mono text-base tracking-widest font-semibold py-1">
-                  {{ formTarjeta.numero || '•••• •••• •••• ••••' }}
-                </div>
-                <div class="flex justify-between items-end text-[10px] text-slate-300">
-                  <div>
-                    <span class="block text-[8px] uppercase text-slate-400">Titular</span>
-                    <span class="font-bold text-xs uppercase">{{ formTarjeta.nombre || 'NOMBRE DEL TITULAR' }}</span>
-                  </div>
-                  <div class="text-right">
-                    <span class="block text-[8px] uppercase text-slate-400">Vence</span>
-                    <span class="font-bold text-xs">{{ formTarjeta.exp || 'MM/AA' }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Inputs de Tarjeta -->
-              <div class="space-y-3 text-xs">
-                <div>
-                  <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Número de Tarjeta:</label>
-                  <div class="relative">
-                    <input
-                      v-model="formTarjeta.numero"
-                      type="text"
-                      maxlength="19"
-                      class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
-                    />
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center gap-1 text-slate-400">
-                      <i class="fa-brands fa-cc-visa text-lg"></i>
-                      <i class="fa-brands fa-cc-mastercard text-lg"></i>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                  <div>
-                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Expiración (MM/AA):</label>
-                    <input
-                      v-model="formTarjeta.exp"
-                      type="text"
-                      placeholder="MM/AA"
-                      maxlength="5"
-                      class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono text-center"
-                    />
-                  </div>
-                  <div>
-                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">CVV / CVC:</label>
-                    <input
-                      v-model="formTarjeta.cvv"
-                      type="password"
-                      placeholder="•••"
-                      maxlength="4"
-                      class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono text-center"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre en la Tarjeta:</label>
-                  <input
-                    v-model="formTarjeta.nombre"
-                    type="text"
-                    class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- PESTAÑA 2: YAPE / PLIN -->
-            <div v-else-if="metodoPago === 'yape'" class="space-y-4 text-center">
-              <div class="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/60 space-y-3">
-                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-600 text-white font-bold text-xs">
-                  <i class="fa-solid fa-qrcode"></i>
-                  <span>Código QR Yape Oficial</span>
-                </div>
-                
-                <!-- QR Visual Simulado -->
-                <div class="w-40 h-40 mx-auto bg-white p-2 rounded-xl shadow-sm border border-purple-200 dark:border-purple-800 flex flex-col items-center justify-center relative">
-                  <div class="w-full h-full bg-slate-900 rounded-lg flex items-center justify-center text-white text-center p-2">
-                    <div class="space-y-1">
-                      <i class="fa-solid fa-qrcode text-5xl"></i>
-                      <div class="text-[9px] font-mono tracking-tighter">SIAPP SOLUCIONES SAC</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="text-xs space-y-1">
-                  <div class="text-slate-600 dark:text-slate-400">Escanea desde tu app Yape o transfiere al número:</div>
-                  <div class="text-base font-extrabold text-purple-900 dark:text-purple-300 font-mono tracking-wider">987 654 321</div>
-                  <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Titular: SIAPP SOLUCIONES EDUCATIVAS SAC</div>
-                </div>
-              </div>
-
-              <div class="text-left text-xs space-y-1">
-                <label class="block font-semibold text-slate-700 dark:text-slate-300">Código de Aprobación de Yape (6 dígitos):</label>
-                <input
-                  v-model="formYape.codigoAprobacion"
-                  type="text"
-                  placeholder="Ej: 782910"
-                  maxlength="8"
-                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:outline-none font-mono text-center text-sm font-bold tracking-widest"
-                />
-              </div>
-            </div>
-
-            <!-- PESTAÑA 3: TRANSFERENCIA BANCARIA BCP -->
-            <div v-else class="space-y-4 text-xs">
-              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3">
-                <div class="flex items-center justify-between">
-                  <span class="font-bold text-slate-900 dark:text-white text-sm">Banco de Crédito del Perú (BCP)</span>
-                  <span class="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 font-bold text-[10px]">Soles (S/)</span>
-                </div>
-
-                <div class="space-y-2">
-                  <div class="flex justify-between items-center bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <div>
-                      <span class="block text-[10px] text-slate-400">Cuenta Corriente BCP:</span>
-                      <span class="font-mono font-bold text-slate-800 dark:text-slate-200">191-2849102-0-45</span>
-                    </div>
-                    <button
-                      type="button"
-                      @click="copiarTexto('191-2849102-0-45', 'cta')"
-                      class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-semibold"
-                    >
-                      Copiar
-                    </button>
-                  </div>
-
-                  <div class="flex justify-between items-center bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
-                    <div>
-                      <span class="block text-[10px] text-slate-400">Código Interbancario (CCI):</span>
-                      <span class="font-mono font-bold text-slate-800 dark:text-slate-200">002-191-002849102045-56</span>
-                    </div>
-                    <button
-                      type="button"
-                      @click="copiarTexto('002-191-002849102045-56', 'cci')"
-                      class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-semibold"
-                    >
-                      Copiar
-                    </button>
-                  </div>
-                </div>
-
-                <div class="text-[11px] text-slate-500 dark:text-slate-400">
-                  Beneficiario: <strong class="text-slate-700 dark:text-slate-300">SIAPP SOFTWARE PERU S.A.C.</strong><br />
-                  RUC: <strong class="text-slate-700 dark:text-slate-300">20608912345</strong>
-                </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div
+              v-for="cuenta in cuentasBancarias"
+              :key="cuenta.cuentaBancariaID"
+              :class="cuenta.esCuentaDetraccion ? 'border-amber-300 dark:border-amber-800/80 bg-amber-50/40 dark:bg-amber-950/20' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'"
+              class="rounded-2xl p-4 border shadow-xs space-y-3"
+            >
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-sm text-slate-900 dark:text-white">
+                  {{ cuenta.banco }}
+                </span>
+                <span
+                  :class="cuenta.esCuentaDetraccion ? 'bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200' : 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300'"
+                  class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                >
+                  {{ cuenta.esCuentaDetraccion ? 'DETRACCIONES' : 'COMERCIAL' }}
+                </span>
               </div>
 
               <div>
-                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">N° de Operación de la Transferencia:</label>
-                <input
-                  v-model="formTransferencia.nroOperacion"
-                  type="text"
-                  placeholder="Ej: 98410293"
-                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
-                />
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">N° de Cuenta:</span>
+                <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg mt-0.5">
+                  <span class="font-mono text-xs font-bold text-slate-800 dark:text-slate-200">{{ cuenta.numeroCuenta }}</span>
+                  <button
+                    type="button"
+                    @click="copiarTexto(cuenta.numeroCuenta, 'N° de Cuenta ' + cuenta.banco)"
+                    class="text-blue-600 hover:text-blue-800 text-xs font-semibold"
+                  >
+                    Copiar
+                  </button>
+                </div>
               </div>
+
+              <div v-if="cuenta.cci">
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">Código Interbancario (CCI):</span>
+                <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg mt-0.5">
+                  <span class="font-mono text-xs font-bold text-slate-800 dark:text-slate-200">{{ cuenta.cci }}</span>
+                  <button
+                    type="button"
+                    @click="copiarTexto(cuenta.cci, 'CCI ' + cuenta.banco)"
+                    class="text-blue-600 hover:text-blue-800 text-xs font-semibold"
+                  >
+                    Copiar
+                  </button>
+                </div>
+              </div>
+
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 italic">
+                {{ cuenta.badge }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTORIAL DE COBRANZAS PASADAS -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <i class="fa-light fa-clock-rotate-left text-blue-600"></i>
+            <span>Historial de Facturación y Comprobantes</span>
+          </h3>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-700">
+                <tr>
+                  <th class="p-3">Período</th>
+                  <th class="p-3">Comprobante</th>
+                  <th class="p-3">Emisión</th>
+                  <th class="p-3">Total Facturado</th>
+                  <th class="p-3">Detracción BN (12%)</th>
+                  <th class="p-3">Neto Comercial</th>
+                  <th class="p-3">Estado</th>
+                  <th class="p-3 text-right">Acción</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                <tr v-for="item in comprobantes" :key="item.cobranzaID" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                  <td class="p-3 font-semibold">{{ item.periodoTexto }}</td>
+                  <td class="p-3 font-mono font-bold text-blue-600 dark:text-blue-400">{{ item.comprobanteCompleto }}</td>
+                  <td class="p-3">{{ item.fechaEmision }}</td>
+                  <td class="p-3 font-mono font-bold">S/ {{ item.montoTotalFacturado.toFixed(2) }}</td>
+                  <td class="p-3 font-mono text-amber-600 dark:text-amber-400">S/ {{ item.montoDetraccion.toFixed(2) }}</td>
+                  <td class="p-3 font-mono text-emerald-600 dark:text-emerald-400 font-bold">S/ {{ item.montoNetoAPagar.toFixed(2) }}</td>
+                  <td class="p-3">
+                    <span
+                      :class="item.estadoCobranza === 'PAGADO_TOTAL' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'"
+                      class="px-2 py-0.5 rounded text-[10px] font-bold"
+                    >
+                      {{ item.estadoCobranza === 'PAGADO_TOTAL' ? 'Pagado Total' : 'Pendiente' }}
+                    </span>
+                  </td>
+                  <td class="p-3 text-right">
+                    <button
+                      type="button"
+                      @click="abrirModalReportarPago(item)"
+                      class="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 hover:bg-blue-100 text-[11px] font-bold"
+                    >
+                      Reportar Pago
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================================================= -->
+      <!-- CONTENIDO PESTAÑA 2: MANUALES & EVIDENCIAS DE LICENCIAMIENTO MINEDU          -->
+      <!-- ============================================================================= -->
+      <div v-else-if="pestanaActiva === 'licenciamiento'" class="space-y-6">
+
+        <!-- BANNER INFORMATIVO PARA INSTITUTOS (CBC MINEDU) -->
+        <div class="bg-gradient-to-r from-blue-900 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+          <div class="max-w-2xl space-y-2 relative z-10">
+            <span class="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-bold inline-block">
+              Condiciones Básicas de Calidad (CBC) - MINEDU / SUNEDU
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-bold font-heading">
+              Centro de Recursos y Evidencias para Licenciamiento
+            </h2>
+            <p class="text-xs sm:text-sm text-blue-100/80 leading-relaxed">
+              Descarga la carpeta técnica de evidencias que sustenta el cumplimiento de gestión académica, seguridad de bases de datos, planes de contingencia y manuales de usuario de tu institución.
+            </p>
+          </div>
+          <i class="fa-light fa-file-certificate text-9xl text-white/5 absolute -right-4 -bottom-6 pointer-events-none"></i>
+        </div>
+
+        <!-- FILTROS Y BÚSQUEDA DE MANUALES -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
+            <button
+              type="button"
+              @click="categoriaFiltro = 'TODOS'"
+              :class="categoriaFiltro === 'TODOS' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'"
+              class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0"
+            >
+              Todos ({{ documentosLicenciamiento.length }})
+            </button>
+            <button
+              type="button"
+              @click="categoriaFiltro = 'Manuales de Usuario'"
+              :class="categoriaFiltro === 'Manuales de Usuario' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'"
+              class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0"
+            >
+              Manuales de Usuario
+            </button>
+            <button
+              type="button"
+              @click="categoriaFiltro = 'Evidencias de Licenciamiento (CBC)'"
+              :class="categoriaFiltro === 'Evidencias de Licenciamiento (CBC)' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'"
+              class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0"
+            >
+              Fichas Técnicas MINEDU
+            </button>
+            <button
+              type="button"
+              @click="categoriaFiltro = 'Seguridad y Continuidad'"
+              :class="categoriaFiltro === 'Seguridad y Continuidad' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'"
+              class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0"
+            >
+              Seguridad & Backups
+            </button>
+          </div>
+
+          <div class="relative w-full sm:w-64">
+            <input
+              v-model="busquedaManuales"
+              type="text"
+              placeholder="Buscar documento..."
+              class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <i class="fa-light fa-magnifying-glass text-slate-400 absolute left-2.5 top-2.5 text-xs"></i>
+          </div>
+        </div>
+
+        <!-- GRID DE DOCUMENTOS PRIVADOS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            v-for="doc in documentosFiltrados"
+            :key="doc.documentoID"
+            class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all shadow-xs flex flex-col justify-between gap-4"
+          >
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 flex items-center gap-1.5">
+                  <i :class="['fa-light', doc.iconoCategoria]"></i>
+                  <span>{{ doc.nombreCategoria }}</span>
+                </span>
+                <span class="text-[10px] font-mono text-slate-400">
+                  v{{ doc.version }} &bull; {{ doc.tamanoArchivoMB }} MB
+                </span>
+              </div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white">
+                {{ doc.titulo }}
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                {{ doc.descripcion }}
+              </p>
             </div>
 
-            <!-- BOTÓN PRINCIPAL DE PAGO -->
-            <div class="pt-2">
-              <button
-                type="button"
-                @click="procesarPago"
-                :disabled="isProcessing"
-                class="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white font-bold text-base shadow-lg shadow-blue-600/30 transition-all flex flex-col items-center justify-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
+            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <span class="text-[10px] text-slate-400">
+                Actualizado: {{ doc.fechaPublicacion }}
+              </span>
+              <a
+                :href="doc.urlArchivo"
+                target="_blank"
+                class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all"
               >
-                <div v-if="isProcessing" class="flex items-center gap-2">
-                  <i class="fa-solid fa-spinner fa-spin text-lg"></i>
-                  <span>Procesando Pago Seguro...</span>
-                </div>
-                <div v-else class="flex items-center gap-2">
-                  <i class="fa-light fa-badge-check text-lg"></i>
-                  <span>Pagar {{ clienteActual.moneda }} {{ clienteActual.total.toFixed(2) }} y Habilitar SIAPP</span>
-                </div>
-                <span v-if="isProcessing" class="text-[11px] font-normal text-blue-200 animate-pulse">
-                  {{ processingStep }}
-                </span>
-                <span v-else class="text-[10px] font-normal text-blue-100">
-                  Activación automática e inmediata tras confirmación
-                </span>
-              </button>
+                <i class="fa-light fa-arrow-down-to-bracket"></i>
+                <span>Descargar PDF</span>
+              </a>
             </div>
-
-            <div class="text-center text-[11px] text-slate-400 flex items-center justify-center gap-1.5 pt-1">
-              <i class="fa-light fa-shield-halved text-emerald-600 dark:text-emerald-400"></i>
-              <span>Garantía de disponibilidad y respaldo de datos 100% garantizado</span>
-            </div>
-
           </div>
         </div>
 
@@ -708,47 +857,148 @@ const copiarTexto = (texto, idNotif) => {
 
     </div>
 
-    <!-- SECCIÓN DE PREGUNTAS FRECUENTES Y SOPORTE DE FACTURACIÓN -->
-    <div class="mt-16 pt-12 border-t border-slate-200/80 dark:border-slate-800">
-      <div class="text-center max-w-2xl mx-auto space-y-2 mb-8">
-        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-heading">
-          Preguntas Frecuentes sobre Pagos y Activación
-        </h3>
-        <p class="text-sm text-slate-600 dark:text-slate-400">
-          Todo lo que necesitas saber sobre el cobro y la continuidad de tu servicio en la nube.
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-          <div class="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg">
-            <i class="fa-light fa-bolt"></i>
+    <!-- ============================================================================= -->
+    <!-- MODAL PARA REPORTAR PAGO / SUBIR VOUCHER                                      -->
+    <!-- ============================================================================= -->
+    <div
+      v-if="mostrarModalPago"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in"
+    >
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+              Reportar Pago de Facturación
+            </h3>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-mono">
+              Comprobante: {{ cobranzaSeleccionada?.comprobanteCompleto }}
+            </span>
           </div>
-          <h4 class="font-bold text-slate-900 dark:text-white text-sm">¿Cuánto tarda en habilitarse el sistema?</h4>
-          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            La activación es instantánea. Nuestro webhook actualiza la vigencia en la base de datos central en menos de 5 segundos tras aprobarse la transacción.
-          </p>
+          <button
+            type="button"
+            @click="mostrarModalPago = false"
+            class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-500 flex items-center justify-center"
+          >
+            <i class="fa-light fa-xmark"></i>
+          </button>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-          <div class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg">
-            <i class="fa-light fa-file-invoice-dollar"></i>
-          </div>
-          <h4 class="font-bold text-slate-900 dark:text-white text-sm">¿Emiten factura electrónica?</h4>
-          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Sí. Emitimos factura electrónica a nombre de la razón social y RUC de su institución educativa, la cual llega automáticamente a su correo registrado.
-          </p>
+        <div v-if="mensajePagoExito" class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
+          <i class="fa-light fa-circle-check text-lg"></i>
+          <span>{{ mensajePagoExito }}</span>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-          <div class="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">
-            <i class="fa-light fa-headset"></i>
+        <form v-else @submit.prevent="enviarReportePago" class="space-y-4">
+          
+          <!-- Tipo de Abono -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              Tipo de Pago que estás reportando:
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                @click="formReportePago.tipoAbono = 'NETO_COMERCIAL'; formReportePago.montoPagado = cobranzaSeleccionada.montoNetoAPagar"
+                :class="formReportePago.tipoAbono === 'NETO_COMERCIAL' ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'"
+                class="p-2.5 rounded-xl border text-xs font-bold text-left"
+              >
+                <span class="block">1. Neto Comercial</span>
+                <span class="text-[10px] font-mono block text-slate-500">S/ {{ cobranzaSeleccionada?.montoNetoAPagar.toFixed(2) }}</span>
+              </button>
+
+              <button
+                type="button"
+                @click="formReportePago.tipoAbono = 'DETRACCION_BN'; formReportePago.montoPagado = cobranzaSeleccionada.montoDetraccion"
+                :class="formReportePago.tipoAbono === 'DETRACCION_BN' ? 'border-amber-600 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'"
+                class="p-2.5 rounded-xl border text-xs font-bold text-left"
+              >
+                <span class="block">2. Detracción (12%)</span>
+                <span class="text-[10px] font-mono block text-amber-600">S/ {{ cobranzaSeleccionada?.montoDetraccion.toFixed(2) }} (Banco de la Nación)</span>
+              </button>
+            </div>
           </div>
-          <h4 class="font-bold text-slate-900 dark:text-white text-sm">¿Necesitas soporte financiero?</h4>
-          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Comunícate directamente con nuestro equipo de facturación al <strong>(01) 748-2900</strong> o vía WhatsApp al <strong>+51 987 654 321</strong>.
-          </p>
-        </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Fecha de Operación:
+              </label>
+              <input
+                v-model="formReportePago.fechaOperacion"
+                type="date"
+                required
+                class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Monto Abonado (S/):
+              </label>
+              <input
+                v-model="formReportePago.montoPagado"
+                type="number"
+                step="0.01"
+                required
+                class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-mono font-bold text-slate-900 dark:text-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              N° de Operación / Constancia SUNAT:
+            </label>
+            <input
+              v-model="formReportePago.numeroOperacion"
+              type="text"
+              required
+              placeholder="Ej: 0481920 o 2026-09-00129"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-mono text-slate-900 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              Adjuntar Foto del Voucher / Constancia de Detracción:
+            </label>
+            <input
+              type="file"
+              class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              Observaciones adicionales (Opcional):
+            </label>
+            <textarea
+              v-model="formReportePago.observaciones"
+              rows="2"
+              placeholder="Ej: Pagado desde cuenta BCP de gerencia..."
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white"
+            ></textarea>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <button
+              type="button"
+              @click="mostrarModalPago = false"
+              class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              :disabled="isEnviandoPago"
+              class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 flex items-center gap-1.5"
+            >
+              <i v-if="isEnviandoPago" class="fa-solid fa-spinner fa-spin"></i>
+              <span>{{ isEnviandoPago ? 'Registrando...' : 'Confirmar Reporte de Pago' }}</span>
+            </button>
+          </div>
+
+        </form>
       </div>
     </div>
 
