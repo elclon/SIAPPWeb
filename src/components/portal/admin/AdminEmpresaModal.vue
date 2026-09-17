@@ -2,6 +2,9 @@
 import { ref, computed, watch } from 'vue';
 import { DxForm, DxGroupItem, DxSimpleItem, DxRequiredRule, DxStringLengthRule, DxEmailRule } from 'devextreme-vue/form';
 import { DxButton } from 'devextreme-vue/button';
+import apiClient from '@/api/axiosConfig';
+import { showSuccess, showError, showWarning } from '@/services/notification';
+import { getErrorMessage } from '@/services/errorHandler';
 
 const props = defineProps({
   visible: {
@@ -17,6 +20,7 @@ const props = defineProps({
 const emit = defineEmits(['update:visible', 'guardar']);
 
 const dxFormRef = ref(null);
+const isConsultandoRuc = ref(false);
 
 const formEmpresa = ref({
   clienteID: 0,
@@ -54,6 +58,52 @@ watch(() => props.visible, (newVal) => {
   }
 });
 
+// Función de consulta a SUNAT a través de apiClient (patrón estricto ProveedoresForm.vue)
+const consultarRucSunat = async () => {
+  const ruc = formEmpresa.value.ruc ? formEmpresa.value.ruc.trim() : '';
+  if (!ruc) {
+    showWarning('Por favor ingrese un número de RUC para validar.');
+    return;
+  }
+  if (ruc.length !== 11) {
+    showWarning('El número de RUC debe tener 11 dígitos numéricos.');
+    return;
+  }
+
+  try {
+    isConsultandoRuc.value = true;
+    const response = await apiClient.get(`/portal-cliente/admin/consultar-ruc/${ruc}`);
+    if (response.data && response.data.razonSocial) {
+      formEmpresa.value.razonSocial = response.data.razonSocial;
+      if (!formEmpresa.value.nombreComercial) {
+        formEmpresa.value.nombreComercial = response.data.razonSocial;
+      }
+
+      // Sugerir código de enlace si aún no fue definido
+      if (!formEmpresa.value.codigoConexion) {
+        const sugerencia = response.data.razonSocial
+          .toLowerCase()
+          .replace(/s\.a\.c\.|s\.a\.|e\.i\.r\.l\.|s\.r\.l\.|instituto|superior|tecnologico|de|la|el|los|las/g, '')
+          .trim()
+          .split(/\s+/)[0]
+          .replace(/[^a-z0-9]/g, '');
+        if (sugerencia) {
+          formEmpresa.value.codigoConexion = sugerencia;
+          if (!formEmpresa.value.subdominioSIAPP) {
+            formEmpresa.value.subdominioSIAPP = `${sugerencia}.siapp.edu.pe`;
+          }
+        }
+      }
+
+      showSuccess('Datos recuperados correctamente');
+    }
+  } catch (error) {
+    showError(getErrorMessage(error, 'Error al consultar documento'));
+  } finally {
+    isConsultandoRuc.value = false;
+  }
+};
+
 // Regla 2.4: Editor Options declarados en computed(...)
 const tipoCobroOptions = computed(() => ({
   items: [
@@ -67,9 +117,22 @@ const tipoCobroOptions = computed(() => ({
   }
 }));
 
+// Configuración de RUC con botón interno de validación SUNAT (según patrón ProveedoresForm.vue)
 const rucOptions = computed(() => ({
-  placeholder: '20549281921',
-  maxLength: 11
+  placeholder: 'Ej: 20549281921',
+  maxLength: 11,
+  buttons: [{
+    name: 'buscarRuc',
+    location: 'after',
+    options: {
+      icon: isConsultandoRuc.value ? 'spin' : 'find',
+      type: 'default',
+      stylingMode: 'text',
+      hint: 'Consultar datos en SUNAT',
+      disabled: isConsultandoRuc.value,
+      onClick: consultarRucSunat
+    }
+  }]
 }));
 
 const nombreComercialOptions = computed(() => ({

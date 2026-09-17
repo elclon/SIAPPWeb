@@ -5,6 +5,9 @@ import { locale, loadMessages } from 'devextreme/localization';
 import esMessages from 'devextreme/localization/messages/es.json';
 import { licenseKey } from './admin/devextreme-license';
 import { MANUALES_FIJOS_MINEDU } from './admin/manualesMineduConstants';
+import apiClient from '@/api/axiosConfig';
+import { showSuccess, showError } from '@/services/notification';
+import { getErrorMessage } from '@/services/errorHandler';
 import AdminPortalHeader from './admin/AdminPortalHeader.vue';
 import AdminEmpresasTab from './admin/AdminEmpresasTab.vue';
 import AdminManualesEmpresaPanel from './admin/AdminManualesEmpresaPanel.vue';
@@ -13,11 +16,15 @@ import AdminVouchersTab from './admin/AdminVouchersTab.vue';
 import AdminEmpresaModal from './admin/AdminEmpresaModal.vue';
 import AdminEmitirCobranzaModal from './admin/AdminEmitirCobranzaModal.vue';
 import AdminSubirManualModal from './admin/AdminSubirManualModal.vue';
+import AdminLogin from './admin/AdminLogin.vue';
 
 // Registrar licencia de DevExtreme y configurar idioma español como en SIAPPClient
 config({ licenseKey });
 loadMessages(esMessages);
 locale('es');
+
+// Estado de Autenticación de SuperAdmin
+const sesionAdmin = ref(null);
 
 // Pestañas Activas en el Panel Admin: 'empresas' | 'calculo' | 'vouchers'
 const pestanaActiva = ref('empresas');
@@ -35,136 +42,12 @@ const filtroMes = ref(mesActual);
 const isCalculando = ref(false);
 const isGuardandoEmpresa = ref(false);
 const isGuardandoManual = ref(false);
-const mensajeFeedback = ref('');
-const tipoFeedback = ref('success');
 
-// Directorio de Empresas Registradas
-const empresas = ref([
-  {
-    clienteID: 1,
-    ruc: '20549281921',
-    razonSocial: 'INSTITUTO DE EDUCACION SUPERIOR TECNOLOGICO SIAPP S.A.C.',
-    nombreComercial: 'Instituto Tecnológico SIAPP',
-    subdominioSIAPP: 'institucion.siapp.edu.pe',
-    codigoConexion: 'siapp',
-    tipoCobro: 'POR_ALUMNO',
-    tarifaPorAlumno: 4.00,
-    montoFijoPactado: null,
-    tipoComprobanteHabitual: '01',
-    porcentajeDetraccion: 12.00,
-    contactoPrincipal: 'Lic. Roberto Zegarra',
-    emailContacto: 'administracion@siapp.edu.pe',
-    estado: true
-  },
-  {
-    clienteID: 2,
-    ruc: '20491823901',
-    razonSocial: 'INSTITUTO SUPERIOR DE EDUCACION TEPNUM E.I.R.L.',
-    nombreComercial: 'Instituto Superior Tepnum',
-    subdominioSIAPP: 'tepnum.siapp.edu.pe',
-    codigoConexion: 'tepnum',
-    tipoCobro: 'FIJO',
-    tarifaPorAlumno: null,
-    montoFijoPactado: 1500.00,
-    tipoComprobanteHabitual: '01',
-    porcentajeDetraccion: 12.00,
-    contactoPrincipal: 'Mg. Carlos Mendoza',
-    emailContacto: 'finanzas@tepnum.edu.pe',
-    estado: true
-  },
-  {
-    clienteID: 3,
-    ruc: '20601928472',
-    razonSocial: 'INSTITUTO SUPERIOR TECNOLOGICO STENDHAL S.A.',
-    nombreComercial: 'Instituto Stendhal',
-    subdominioSIAPP: 'stendhal.siapp.edu.pe',
-    codigoConexion: 'stendhal',
-    tipoCobro: 'POR_ALUMNO',
-    tarifaPorAlumno: 4.00,
-    montoFijoPactado: null,
-    tipoComprobanteHabitual: '02',
-    porcentajeDetraccion: 10.00,
-    contactoPrincipal: 'Dra. Patricia Alva',
-    emailContacto: 'direccion@stendhal.edu.pe',
-    estado: true
-  }
-]);
-
-// Lista de Cálculos de Alumnos en Vivo
+// Datos del Sistema (cargados dinámicamente desde el backend)
+const empresas = ref([]);
 const calculosClientes = ref([]);
-
-// Lista de Vouchers Reportados
-const vouchers = ref([
-  {
-    pagoID: 1,
-    cobranzaID: 101,
-    clienteNombre: 'Instituto Tecnológico SIAPP',
-    ruc: '20549281921',
-    comprobanteCompleto: 'F001-00001248',
-    tipoAbono: 'DETRACCION_BN',
-    bancoDestino: 'Banco de la Nación',
-    fechaOperacion: '16/09/2026',
-    numeroOperacion: '0481920',
-    montoPagado: 216.00,
-    urlComprobanteVoucher: '#',
-    observacionesCliente: 'Pago de detracción 12% por ventanilla BN',
-    estadoValidacion: 'EN_REVISION',
-    fechaReporte: '16/09/2026 11:30'
-  },
-  {
-    pagoID: 2,
-    cobranzaID: 101,
-    clienteNombre: 'Instituto Tecnológico SIAPP',
-    ruc: '20549281921',
-    comprobanteCompleto: 'F001-00001248',
-    tipoAbono: 'NETO_COMERCIAL',
-    bancoDestino: 'BCP',
-    fechaOperacion: '16/09/2026',
-    numeroOperacion: '98410293',
-    montoPagado: 1584.00,
-    urlComprobanteVoucher: '#',
-    observacionesCliente: 'Transferencia interbancaria monto neto',
-    estadoValidacion: 'EN_REVISION',
-    fechaReporte: '16/09/2026 12:15'
-  }
-]);
-
-// Documentos y manuales actualmente subidos
-const manualesSubidos = ref([
-  {
-    documentoID: 1,
-    clienteIDExclusivo: 1,
-    codigoFijo: 'MAN_ACAD',
-    categoriaID: 1,
-    titulo: 'Manual Operativo: Módulo Académico & Matrículas (Logo SIAPP)',
-    version: '2026.2',
-    tamanoArchivoMB: 4.8,
-    urlArchivo: '/documentos/siapp/manual-academico-siapp.pdf',
-    fechaPublicacion: '10/09/2026'
-  },
-  {
-    documentoID: 2,
-    clienteIDExclusivo: 1,
-    codigoFijo: 'MAN_CAJA',
-    categoriaID: 1,
-    titulo: 'Manual Operativo: Caja, Tesorería y Facturación SUNAT (Logo SIAPP)',
-    version: '2026.1',
-    tamanoArchivoMB: 3.5,
-    urlArchivo: '/documentos/siapp/manual-caja-sunat-siapp.pdf',
-    fechaPublicacion: '05/09/2026'
-  },
-  {
-    documentoID: 3,
-    clienteIDExclusivo: 2,
-    codigoFijo: 'FIC_TEC',
-    categoriaID: 2,
-    titulo: 'Ficha Técnica de Arquitectura de Software y Servidores (Logo Tepnum)',
-    version: '1.4',
-    tamanoArchivoMB: 2.1,
-    urlArchivo: '/documentos/tepnum/ficha-tecnica-tepnum.pdf',
-    fechaPublicacion: '12/08/2026'
-  }
-]);
+const vouchers = ref([]);
+const manualesSubidos = ref([]);
 
 // Modales
 const mostrarModalEmpresa = ref(false);
@@ -172,6 +55,34 @@ const mostrarModalEmitir = ref(false);
 const clienteSeleccionadoParaEmitir = ref(null);
 const mostrarModalSubirManualFijo = ref(false);
 const manualFijoSeleccionado = ref(null);
+
+// Manejo de Sesión de SuperAdmin
+const onLoginExitoso = (sesion) => {
+  sesionAdmin.value = sesion;
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem('siapp_admin_sesion', JSON.stringify(sesion));
+    if (sesion.token) {
+      sessionStorage.setItem('token', sesion.token);
+    }
+  }
+  cargarEmpresas();
+  cargarManuales();
+  cargarVouchers();
+  sincronizarAlumnos();
+};
+
+const onCerrarSesion = () => {
+  sesionAdmin.value = null;
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem('siapp_admin_sesion');
+    sessionStorage.removeItem('token');
+  }
+  empresas.value = [];
+  calculosClientes.value = [];
+  vouchers.value = [];
+  manualesSubidos.value = [];
+  showSuccess('Sesión administrativa cerrada.');
+};
 
 // Acciones de Navegación y Apertura de Modales
 const abrirModalNuevaEmpresa = () => {
@@ -196,132 +107,63 @@ const abrirModalEmitir = (item) => {
   mostrarModalEmitir.value = true;
 };
 
-// Cargar Datos Iniciales desde el Backend
+// Cargar Datos Dinámicos desde el Backend utilizando apiClient
 const cargarEmpresas = async () => {
   try {
-    const res = await fetch('http://localhost:5000/portal-cliente/admin/clientes');
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.length > 0) {
-        empresas.value = data;
-      }
-    }
+    const response = await apiClient.get('/portal-cliente/admin/clientes');
+    empresas.value = Array.isArray(response.data) ? response.data : [];
   } catch (e) {
-    // Si el servidor local no está activo, mantiene los datos mock para diseño
+    empresas.value = [];
   }
 };
 
 const cargarManuales = async () => {
   try {
-    const res = await fetch('http://localhost:5000/portal-cliente/admin/documentos');
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.length > 0) {
-        manualesSubidos.value = data;
-      }
-    }
+    const response = await apiClient.get('/portal-cliente/admin/documentos');
+    manualesSubidos.value = Array.isArray(response.data) ? response.data : [];
   } catch (e) {
-    // Fallback reactivo en memoria
+    manualesSubidos.value = [];
+  }
+};
+
+const cargarVouchers = async () => {
+  try {
+    const response = await apiClient.get('/portal-cliente/admin/vouchers-pendientes');
+    vouchers.value = Array.isArray(response.data) ? response.data : [];
+  } catch (e) {
+    vouchers.value = [];
   }
 };
 
 const sincronizarAlumnos = async () => {
   isCalculando.value = true;
   try {
-    const res = await fetch(`http://localhost:5000/portal-cliente/admin/calculo-alumnos?anio=${filtroAnio.value}&mes=${filtroMes.value}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.length > 0) {
-        calculosClientes.value = data;
-        return;
+    const response = await apiClient.get('/portal-cliente/admin/calcular-alumnos', {
+      params: {
+        anio: filtroAnio.value,
+        mes: filtroMes.value
       }
-    }
-  } catch (e) {
-    // Fallback de cálculo simulado
+    });
+    calculosClientes.value = Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    calculosClientes.value = [];
+    showError(getErrorMessage(error, 'Error al calcular alumnos'));
+  } finally {
+    isCalculando.value = false;
   }
-
-  // Generar cálculo basado en las empresas registradas
-  calculosClientes.value = empresas.value.map(emp => {
-    let alumnos = 0;
-    let total = 0;
-    let det = 0;
-    let neto = 0;
-
-    if (emp.tipoCobro === 'POR_ALUMNO') {
-      alumnos = emp.codigoConexion === 'siapp' ? 450 : emp.codigoConexion === 'stendhal' ? 280 : 195;
-      const tarifa = emp.tarifaPorAlumno || 4.00;
-      total = Math.round(alumnos * tarifa * 100) / 100;
-      det = total > 700 ? Math.round(total * 0.12 * 100) / 100 : 0;
-      neto = Math.round((total - det) * 100) / 100;
-      return {
-        clienteID: emp.clienteID,
-        ruc: emp.ruc,
-        nombreComercial: emp.nombreComercial,
-        subdominioSIAPP: emp.subdominioSIAPP,
-        codigoConexion: emp.codigoConexion,
-        tipoCobro: emp.tipoCobro,
-        alumnosDetectados: alumnos,
-        tarifaAplicada: tarifa,
-        montoTotal: total,
-        aplicaDetraccion: total > 700,
-        montoDetraccion: det,
-        montoNeto: neto,
-        yaFacturadoEnPeriodo: emp.clienteID === 1,
-        estadoConexionBD: 'CONECTADO',
-        mensajeConexion: 'Conexión verificada exitosamente'
-      };
-    } else {
-      total = emp.montoFijoPactado || 1500.00;
-      det = total > 700 ? Math.round(total * 0.12 * 100) / 100 : 0;
-      neto = Math.round((total - det) * 100) / 100;
-      return {
-        clienteID: emp.clienteID,
-        ruc: emp.ruc,
-        nombreComercial: emp.nombreComercial,
-        subdominioSIAPP: emp.subdominioSIAPP,
-        codigoConexion: emp.codigoConexion,
-        tipoCobro: emp.tipoCobro,
-        alumnosDetectados: 0,
-        tarifaAplicada: total,
-        montoTotal: total,
-        aplicaDetraccion: total > 700,
-        montoDetraccion: det,
-        montoNeto: neto,
-        yaFacturadoEnPeriodo: false,
-        estadoConexionBD: 'NO_REQUERIDO_FIJO',
-        mensajeConexion: 'Modalidad de tarifa fija mensual pactada'
-      };
-    }
-  });
-
-  isCalculando.value = false;
 };
 
 // Handlers de Guardado
 const onGuardarEmpresa = async (nuevaEmpresa) => {
   isGuardandoEmpresa.value = true;
   try {
-    const res = await fetch('http://localhost:5000/portal-cliente/admin/clientes/guardar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(nuevaEmpresa)
-    }).catch(() => null);
-
-    let nuevoId = Date.now();
-    if (res && res.ok) {
-      const dataId = await res.json();
-      if (dataId) nuevoId = dataId;
-    }
-
-    empresas.value.unshift({
-      ...nuevaEmpresa,
-      clienteID: nuevoId,
-      estado: true
-    });
-
+    await apiClient.post('/portal-cliente/admin/clientes/guardar', nuevaEmpresa);
     mostrarModalEmpresa.value = false;
-    alert(`¡Institución "${nuevaEmpresa.nombreComercial}" registrada con éxito!`);
-    sincronizarAlumnos();
+    showSuccess(`¡Institución "${nuevaEmpresa.nombreComercial}" registrada con éxito!`);
+    await cargarEmpresas();
+    await sincronizarAlumnos();
+  } catch (error) {
+    showError(getErrorMessage(error, 'Error al registrar la institución'));
   } finally {
     isGuardandoEmpresa.value = false;
   }
@@ -329,58 +171,25 @@ const onGuardarEmpresa = async (nuevaEmpresa) => {
 
 const onConfirmarEmisionCobranza = async ({ payload, cliente }) => {
   try {
-    await fetch('http://localhost:5000/portal-cliente/admin/emitir-cobranza', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).catch(() => null);
-
+    await apiClient.post('/portal-cliente/admin/emitir-cobranza', payload);
     cliente.yaFacturadoEnPeriodo = true;
     mostrarModalEmitir.value = false;
-    alert(`Cobranza ${payload.serieComprobante}-${payload.numeroComprobante} registrada exitosamente.`);
-  } catch (e) {
-    mostrarModalEmitir.value = false;
+    showSuccess(`Cobranza ${payload.serieComprobante}-${payload.numeroComprobante} emitida exitosamente.`);
+    await sincronizarAlumnos();
+  } catch (error) {
+    showError(getErrorMessage(error, 'Error al registrar la cobranza'));
   }
 };
 
 const onConfirmarGuardadoManual = async ({ payload, manualFijo, empresa, formValues }) => {
   isGuardandoManual.value = true;
   try {
-    await fetch('http://localhost:5000/portal-cliente/admin/documentos/guardar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).catch(() => null);
-
-    const indexExistente = manualesSubidos.value.findIndex(
-      m => m.clienteIDExclusivo === empresa.clienteID && m.codigoFijo === manualFijo.codigoFijo
-    );
-
-    if (indexExistente >= 0) {
-      manualesSubidos.value[indexExistente] = {
-        ...manualesSubidos.value[indexExistente],
-        titulo: formValues.tituloPersonalizado,
-        version: formValues.version,
-        tamanoArchivoMB: parseFloat(formValues.tamanoArchivoMB),
-        urlArchivo: formValues.urlArchivo,
-        fechaPublicacion: new Date().toLocaleDateString('es-PE')
-      };
-    } else {
-      manualesSubidos.value.push({
-        documentoID: Date.now(),
-        clienteIDExclusivo: empresa.clienteID,
-        codigoFijo: manualFijo.codigoFijo,
-        categoriaID: formValues.categoriaID,
-        titulo: formValues.tituloPersonalizado,
-        version: formValues.version,
-        tamanoArchivoMB: parseFloat(formValues.tamanoArchivoMB),
-        urlArchivo: formValues.urlArchivo,
-        fechaPublicacion: new Date().toLocaleDateString('es-PE')
-      });
-    }
-
+    await apiClient.post('/portal-cliente/admin/documentos/guardar', payload);
     mostrarModalSubirManualFijo.value = false;
-    alert(`¡${formValues.tituloPersonalizado} guardado con éxito para ${empresa.nombreComercial}!`);
+    showSuccess(`¡${formValues.tituloPersonalizado} guardado con éxito para ${empresa.nombreComercial}!`);
+    await cargarManuales();
+  } catch (error) {
+    showError(getErrorMessage(error, 'Error al registrar el documento'));
   } finally {
     isGuardandoManual.value = false;
   }
@@ -393,38 +202,51 @@ const onResponderVoucher = async ({ pago, estado }) => {
   }
 
   try {
-    await fetch('http://localhost:5000/portal-cliente/admin/validar-voucher', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        pagoID: pago.pagoID,
-        estadoValidacion: estado,
-        motivoRechazo: estado === 'RECHAZADO' ? 'Número de operación no coincide con el estado bancario' : null
-      })
-    }).catch(() => null);
+    await apiClient.post('/portal-cliente/admin/validar-voucher', {
+      pagoID: pago.pagoID,
+      estadoValidacion: estado,
+      motivoRechazo: estado === 'RECHAZADO' ? 'Número de operación no coincide con el estado bancario' : null
+    });
 
-    pago.estadoValidacion = estado;
-    alert(`Comprobante ${estado.toLowerCase()} correctamente.`);
-  } catch (e) {
-    pago.estadoValidacion = estado;
+    showSuccess(`Comprobante ${estado.toLowerCase()} correctamente.`);
+    await cargarVouchers();
+  } catch (error) {
+    showError(getErrorMessage(error, 'Error al actualizar el estado del comprobante'));
   }
 };
 
 onMounted(() => {
-  cargarEmpresas();
-  cargarManuales();
-  sincronizarAlumnos();
+  if (typeof window !== 'undefined') {
+    const sesionGuardada = sessionStorage.getItem('siapp_admin_sesion') || localStorage.getItem('siapp_admin_sesion');
+    if (sesionGuardada) {
+      try {
+        sesionAdmin.value = JSON.parse(sesionGuardada);
+        cargarEmpresas();
+        cargarManuales();
+        cargarVouchers();
+        sincronizarAlumnos();
+      } catch (e) {
+        sesionAdmin.value = null;
+      }
+    }
+  }
 });
 </script>
 
 <template>
-  <div class="space-y-8">
+  <!-- VISTA DE LOGIN ADMINISTRATIVO SI NO HAY SESIÓN ACTIVA -->
+  <AdminLogin v-if="!sesionAdmin" @login-exitoso="onLoginExitoso" />
 
-    <!-- CABECERA PRINCIPAL MODULAR -->
+  <!-- PANEL DE ADMINISTRACIÓN COMPLETO SI HAY SESIÓN ACTIVA -->
+  <div v-else class="space-y-8">
+
+    <!-- CABECERA PRINCIPAL MODULAR CON SESIÓN Y LOGOUT -->
     <AdminPortalHeader
       :is-calculando="isCalculando"
+      :sesion-admin="sesionAdmin"
       @nueva-empresa="abrirModalNuevaEmpresa"
       @sincronizar="sincronizarAlumnos"
+      @cerrar-sesion="onCerrarSesion"
     />
 
     <!-- PESTAÑAS DE NAVEGACIÓN -->

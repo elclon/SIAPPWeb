@@ -1,5 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import apiClient from '@/api/axiosConfig';
+import { getErrorMessage } from '@/services/errorHandler';
 
 // Estado de Autenticación
 const sesionCliente = ref(null);
@@ -8,8 +10,8 @@ const errorMensaje = ref('');
 
 // Formulario de Login
 const formLogin = ref({
-  usuarioOCorreo: '20549281921',
-  password: 'Password2026!'
+  usuarioOCorreo: '',
+  password: ''
 });
 
 // Pestaña Activa ('facturacion' | 'licenciamiento')
@@ -33,166 +35,14 @@ const formReportePago = ref({
   observaciones: ''
 });
 
-// Datos del Estado de Cuenta (Historial de Comprobantes)
-const comprobantes = ref([
-  {
-    cobranzaID: 101,
-    periodoAnio: 2026,
-    periodoMes: 9,
-    periodoTexto: 'Septiembre 2026',
-    tipoComprobante: '01',
-    descripcionTipoComprobante: 'Factura Electrónica',
-    serieComprobante: 'F001',
-    numeroComprobante: 1248,
-    comprobanteCompleto: 'F001-00001248',
-    fechaEmision: '01/09/2026',
-    fechaVencimiento: '18/09/2026',
-    cantidadAlumnosFacturados: 450,
-    tarifaAplicada: 4.00,
-    montoSubTotal: 1525.42,
-    montoIGV: 274.58,
-    montoTotalFacturado: 1800.00,
-    aplicaDetraccion: true,
-    porcentajeDetraccion: 12.00,
-    montoDetraccion: 216.00,
-    montoNetoAPagar: 1584.00,
-    estadoCobranza: 'PENDIENTE',
-    montoPagadoNeto: 0.00,
-    montoPagadoDetraccion: 0.00,
-    urlPdf: '#',
-    urlXml: '#'
-  },
-  {
-    cobranzaID: 98,
-    periodoAnio: 2026,
-    periodoMes: 8,
-    periodoTexto: 'Agosto 2026',
-    tipoComprobante: '01',
-    descripcionTipoComprobante: 'Factura Electrónica',
-    serieComprobante: 'F001',
-    numeroComprobante: 1195,
-    comprobanteCompleto: 'F001-00001195',
-    fechaEmision: '01/08/2026',
-    fechaVencimiento: '15/08/2026',
-    cantidadAlumnosFacturados: 440,
-    tarifaAplicada: 4.00,
-    montoSubTotal: 1491.53,
-    montoIGV: 268.47,
-    montoTotalFacturado: 1760.00,
-    aplicaDetraccion: true,
-    porcentajeDetraccion: 12.00,
-    montoDetraccion: 211.20,
-    montoNetoAPagar: 1548.80,
-    estadoCobranza: 'PAGADO_TOTAL',
-    montoPagadoNeto: 1548.80,
-    montoPagadoDetraccion: 211.20,
-    urlPdf: '#',
-    urlXml: '#'
-  }
-]);
+// Datos del Estado de Cuenta (Historial de Comprobantes reales)
+const comprobantes = ref([]);
 
 // Cuentas Bancarias del Proveedor (Oficiales para abonos)
-const cuentasBancarias = ref([
-  {
-    cuentaBancariaID: 1,
-    banco: 'Banco de la Nación',
-    tipoCuenta: 'Cuenta Corriente Detracciones (SPOT SUNAT)',
-    numeroCuenta: '00-058-294012',
-    cci: '018-058-000058294012-45',
-    esCuentaDetraccion: true,
-    titular: 'SIAPP SOFTWARE PERU S.A.C.',
-    badge: 'Solo para pago de Detracción (12%)'
-  },
-  {
-    cuentaBancariaID: 2,
-    banco: 'BCP (Banco de Crédito del Perú)',
-    tipoCuenta: 'Cuenta Corriente Soles Comercial',
-    numeroCuenta: '191-28491024-0-91',
-    cci: '002-191-002849102409-15',
-    esCuentaDetraccion: false,
-    titular: 'SIAPP SOFTWARE PERU S.A.C.',
-    badge: 'Para depósito de Monto Neto'
-  },
-  {
-    cuentaBancariaID: 3,
-    banco: 'BBVA Perú',
-    tipoCuenta: 'Cuenta Corriente Soles',
-    numeroCuenta: '0011-0175-0100084920',
-    cci: '011-175-000100084920-72',
-    esCuentaDetraccion: false,
-    titular: 'SIAPP SOFTWARE PERU S.A.C.',
-    badge: 'Para depósito de Monto Neto'
-  }
-]);
+const cuentasBancarias = ref([]);
 
 // Documentos Privados de Licenciamiento MINEDU y Manuales
-const documentosLicenciamiento = ref([
-  {
-    documentoID: 1,
-    categoriaID: 1,
-    nombreCategoria: 'Manuales de Usuario',
-    iconoCategoria: 'fa-book-open',
-    titulo: 'Manual Operativo: Módulo Académico & Matrículas',
-    descripcion: 'Guía detallada para secretaría académica: apertura de períodos, mallas curriculares, planes de estudio y actas.',
-    version: '2026.2',
-    tipoArchivo: 'PDF',
-    tamanoArchivoMB: 4.8,
-    urlArchivo: '/documentos/manual-academico-siapp.pdf',
-    fechaPublicacion: '10/09/2026'
-  },
-  {
-    documentoID: 2,
-    categoriaID: 1,
-    nombreCategoria: 'Manuales de Usuario',
-    iconoCategoria: 'fa-book-open',
-    titulo: 'Manual Operativo: Caja, Tesorería y Facturación SUNAT',
-    descripcion: 'Protocolo de emisión de comprobantes electrónicos (Boletas, Facturas, Notas de Crédito), cierre y arqueo diario de caja.',
-    version: '2026.1',
-    tipoArchivo: 'PDF',
-    tamanoArchivoMB: 3.5,
-    urlArchivo: '/documentos/manual-caja-sunat-siapp.pdf',
-    fechaPublicacion: '05/09/2026'
-  },
-  {
-    documentoID: 3,
-    categoriaID: 2,
-    nombreCategoria: 'Evidencias de Licenciamiento (CBC)',
-    iconoCategoria: 'fa-file-certificate',
-    titulo: 'Ficha Técnica de Arquitectura de Software y Hardware Mínimo',
-    descripcion: 'Documento técnico oficial para presentar ante evaluadores de MINEDU/SUNEDU que sustenta la infraestructura del ERP.',
-    version: '1.4',
-    tipoArchivo: 'PDF',
-    tamanoArchivoMB: 2.1,
-    urlArchivo: '/documentos/ficha-tecnica-licenciamiento-siapp.pdf',
-    fechaPublicacion: '12/08/2026'
-  },
-  {
-    documentoID: 4,
-    categoriaID: 3,
-    nombreCategoria: 'Seguridad y Continuidad',
-    iconoCategoria: 'fa-shield-halved',
-    titulo: 'Plan de Contingencia, Copias de Respaldo y Privacidad de Datos',
-    descripcion: 'Protocolos de copias de seguridad diarias automatizadas en Azure/AWS y política de recuperación ante desastres (DRP).',
-    version: '2.0',
-    tipoArchivo: 'PDF',
-    tamanoArchivoMB: 1.9,
-    urlArchivo: '/documentos/plan-contingencia-seguridad-siapp.pdf',
-    fechaPublicacion: '20/08/2026'
-  },
-  {
-    documentoID: 5,
-    categoriaID: 4,
-    nombreCategoria: 'Certificados Oficiales',
-    iconoCategoria: 'fa-award',
-    titulo: 'Certificado de Licencia y Cesión de Uso de Software Institucional',
-    descripcion: 'Constancia formal de titularidad y derecho de explotación de SIAPP para el proceso de licenciamiento institucional.',
-    version: '2026',
-    tipoArchivo: 'PDF',
-    tamanoArchivoMB: 1.2,
-    urlArchivo: '/documentos/certificado-licencia-siapp.pdf',
-    fechaPublicacion: '01/09/2026'
-  }
-]);
+const documentosLicenciamiento = ref([]);
 
 // Comprobante activo para visualización detallada (el más reciente por defecto)
 const comprobanteActivo = computed(() => {
@@ -218,7 +68,7 @@ const documentosFiltrados = computed(() => {
   return docs;
 });
 
-// Iniciar Sesión en el Portal
+// Iniciar Sesión en el Portal utilizando apiClient
 const iniciarSesion = async () => {
   errorMensaje.value = '';
   if (!formLogin.value.usuarioOCorreo || !formLogin.value.password) {
@@ -228,67 +78,43 @@ const iniciarSesion = async () => {
 
   isLoading.value = true;
   try {
-    // Intentar conectar con la API de SIAPPServer
-    const apiUrl = 'http://localhost:5000/portal-cliente/auth/login';
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        usuarioOCorreo: formLogin.value.usuarioOCorreo.trim(),
-        password: formLogin.value.password.trim()
-      })
-    }).catch(() => null);
+    const response = await apiClient.post('/portal-cliente/auth/login', {
+      usuarioOCorreo: formLogin.value.usuarioOCorreo.trim(),
+      password: formLogin.value.password.trim()
+    });
 
-    if (response && response.ok) {
-      const data = await response.json();
-      sesionCliente.value = data;
-      // Cargar datos reales desde la API
-      await cargarDatosPortal(data.clienteID);
-    } else {
-      // Si la API no está encendida aún o devuelve error en dev local,
-      // habilitar sesión simulada segura con la institución para demostración
-      sesionCliente.value = {
-        usuarioPortalID: 1,
-        clienteID: 1,
-        nombreCompleto: 'Lic. Roberto Zegarra',
-        correoLogin: formLogin.value.usuarioOCorreo,
-        cargo: 'Director General / Administrador',
-        ruc: '20549281921',
-        razonSocial: 'INSTITUTO DE EDUCACION SUPERIOR TECNOLOGICO ITEP S.A.C.',
-        nombreComercial: 'Instituto Tecnológico ITEP',
-        subdominioSIAPP: 'itep.siapp.edu.pe',
-        logoUrl: null
-      };
+    if (response.data) {
+      sesionCliente.value = response.data;
+      await cargarDatosPortal(response.data.clienteID);
     }
   } catch (err) {
-    errorMensaje.value = 'No se pudo conectar con el servidor. Intente nuevamente.';
+    errorMensaje.value = getErrorMessage(err, 'Usuario o contraseña incorrectos, o la cuenta se encuentra inactiva.');
   } finally {
     isLoading.value = false;
   }
 };
 
-// Cargar datos del estado de cuenta y documentos desde backend
+// Cargar datos del estado de cuenta y documentos desde backend con apiClient
 const cargarDatosPortal = async (clienteId) => {
   try {
-    const resCuentas = await fetch('http://localhost:5000/portal-cliente/cuentas-bancarias');
-    if (resCuentas.ok) {
-      const dataCuentas = await resCuentas.json();
-      if (dataCuentas && dataCuentas.length > 0) cuentasBancarias.value = dataCuentas;
-    }
+    const [resCuentas, resEstado, resDocs] = await Promise.allSettled([
+      apiClient.get('/portal-cliente/cuentas-bancarias'),
+      apiClient.get(`/portal-cliente/estado-cuenta/${clienteId}`),
+      apiClient.get(`/portal-cliente/licenciamiento/${clienteId}`)
+    ]);
 
-    const resEstado = await fetch(`http://localhost:5000/portal-cliente/estado-cuenta/${clienteId}`);
-    if (resEstado.ok) {
-      const dataEstado = await resEstado.json();
-      if (dataEstado && dataEstado.length > 0) comprobantes.value = dataEstado;
+    if (resCuentas.status === 'fulfilled') {
+      cuentasBancarias.value = Array.isArray(resCuentas.value.data) ? resCuentas.value.data : [];
     }
-
-    const resDocs = await fetch(`http://localhost:5000/portal-cliente/licenciamiento/${clienteId}`);
-    if (resDocs.ok) {
-      const dataDocs = await resDocs.json();
-      if (dataDocs && dataDocs.length > 0) documentosLicenciamiento.value = dataDocs;
+    if (resEstado.status === 'fulfilled') {
+      comprobantes.value = Array.isArray(resEstado.value.data) ? resEstado.value.data : [];
+    }
+    if (resDocs.status === 'fulfilled') {
+      documentosLicenciamiento.value = Array.isArray(resDocs.value.data) ? resDocs.value.data : [];
     }
   } catch (e) {
-    console.warn('Usando datos locales predeterminados');
+    comprobantes.value = [];
+    documentosLicenciamiento.value = [];
   }
 };
 
@@ -310,7 +136,7 @@ const abrirModalReportarPago = (cobranza, tipo = 'NETO_COMERCIAL') => {
   mostrarModalPago.value = true;
 };
 
-// Enviar Reporte de Pago / Voucher
+// Enviar Reporte de Pago / Voucher con apiClient
 const enviarReportePago = async () => {
   if (!formReportePago.value.numeroOperacion) {
     alert('Ingrese el número de operación bancaria.');
@@ -330,12 +156,7 @@ const enviarReportePago = async () => {
       observacionesCliente: formReportePago.value.observaciones
     };
 
-    // Petición a la API si está disponible
-    await fetch('http://localhost:5000/portal-cliente/pagos/reportar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).catch(() => null);
+    await apiClient.post('/portal-cliente/pagos/reportar', payload);
 
     mensajePagoExito.value = `¡Comprobante de ${formReportePago.value.tipoAbono === 'DETRACCION_BN' ? 'Detracción' : 'Pago Neto'} registrado con éxito! Nuestro departamento de cobranzas lo validará en breve.`;
     
@@ -343,6 +164,8 @@ const enviarReportePago = async () => {
       mostrarModalPago.value = false;
       mensajePagoExito.value = '';
     }, 2500);
+  } catch (err) {
+    alert(getErrorMessage(err, 'Error al registrar el reporte de pago.'));
   } finally {
     isEnviandoPago.value = false;
   }
