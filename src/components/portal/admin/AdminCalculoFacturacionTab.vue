@@ -134,8 +134,11 @@
 
         <!-- Template: Detracción (12%) -->
         <template #detraccionTemplate="{ data }">
-          <span class="font-mono font-semibold text-amber-600 dark:text-amber-400 text-xs">
+          <span v-if="Number(data.data.montoDetraccion || 0) > 0" class="font-mono font-semibold text-amber-600 dark:text-amber-400 text-xs">
             S/ {{ Number(data.data.montoDetraccion || 0).toFixed(2) }}
+          </span>
+          <span v-else class="text-xs text-slate-400 dark:text-slate-500 font-mono font-normal">
+            -
           </span>
         </template>
 
@@ -187,7 +190,7 @@
             class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
           >
             <i class="fa-light fa-circle-check text-xs"></i>
-            <span>Pagado</span>
+            <span>Pendiente de Pago</span>
           </span>
 
           <!-- Otros estados -->
@@ -218,7 +221,7 @@
             <!-- CASO 2: Si ya está NOTIFICADO ('N') -> Botón "Pagado" y Re-notificar -->
             <template v-else-if="data.data.estadoCobranza === 'N' || data.data.estadoCobranza === 'NOTIFICADO'">
               <DxButton
-                text="Pagado"
+                text="Pagar"
                 icon="check"
                 type="success"
                 styling-mode="contained"

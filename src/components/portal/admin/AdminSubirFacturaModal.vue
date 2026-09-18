@@ -58,10 +58,11 @@ const empresaActiva = computed(() => {
   return props.empresas.find(e => e.clienteID === formFactura.value.clienteID) || null;
 });
 
-// Cálculo transparente de detracción y neto en tiempo real
+// Cálculo transparente de detracción y neto en tiempo real (SPOT SUNAT aplica solo si monto > S/ 700)
 const detracciónCalculada = computed(() => {
   const pct = empresaActiva.value?.porcentajeDetraccion ?? 12.00;
   const monto = Number(formFactura.value.monto) || 0;
+  if (monto <= 700 || pct <= 0) return 0;
   return Number((monto * (pct / 100)).toFixed(2));
 });
 
@@ -273,7 +274,10 @@ const handleSubmit = () => {
         </DxForm>
 
         <!-- RESUMEN TRIBUTARIO TRANSPARENTE EN TIEMPO REAL -->
-        <div class="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs">
+        <div
+          v-if="detracciónCalculada > 0"
+          class="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs"
+        >
           <div>
             <span class="text-slate-400 block text-[11px]">Total Facturado:</span>
             <span class="font-bold font-mono text-slate-800 dark:text-slate-200">S/ {{ (Number(formFactura.monto) || 0).toFixed(2) }}</span>
@@ -286,6 +290,16 @@ const handleSubmit = () => {
             <span class="text-blue-600 dark:text-blue-400 block text-[11px]">Neto a Cobrar:</span>
             <span class="font-bold font-mono text-blue-700 dark:text-blue-300">S/ {{ netoCalculado.toFixed(2) }}</span>
           </div>
+        </div>
+        <div
+          v-else-if="Number(formFactura.monto) > 0"
+          class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs flex items-center justify-between"
+        >
+          <div>
+            <span class="text-slate-400 block text-[11px]">Total Facturado:</span>
+            <span class="font-bold font-mono text-slate-800 dark:text-slate-200 text-sm">S/ {{ (Number(formFactura.monto) || 0).toFixed(2) }}</span>
+          </div>
+          <span class="text-[11px] text-slate-500 italic">No aplica detracción (monto menor o igual a S/ 700.00 o sin porcentaje configurado).</span>
         </div>
 
         <!-- SELECCIÓN DE ARCHIVO ADJUNTO (PDF / WORD) -->
