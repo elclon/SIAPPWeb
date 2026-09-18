@@ -89,41 +89,40 @@
         </div>
       </div>
 
-      <!-- DxDataGrid de DevExtreme con columnas en una sola línea (Regla 2.12) -->
+      <!-- DxDataGrid de DevExtreme que ocupa el 100% del ancho disponible -->
       <DxDataGrid
         :data-source="historialPagosEmpresa"
         :show-borders="true"
         :row-alternation-enabled="true"
         :hover-state-enabled="true"
+        :column-auto-width="true"
+        width="100%"
         key-expr="cobranzaID"
-        class="overflow-hidden"
+        class="overflow-hidden w-full"
       >
         <DxSearchPanel :visible="true" placeholder="Buscar por factura, mes, año..." :width="280" />
         <DxPaging :page-size="10" />
         <DxPager :show-page-size-selector="true" :allowed-page-sizes="[5, 10, 20]" :show-info="true" />
 
         <!-- Regla 2.12: Cada DxColumn completa en una sola línea horizontal -->
-        <DxColumn data-field="comprobanteCompleto" caption="Factura Ref." :width="140" alignment="center" cell-template="comprobanteTemplate" />
-        <DxColumn caption="Período" :width="130" alignment="center" cell-template="periodoTemplate" />
-        <DxColumn data-field="montoTotalFacturado" caption="Total Factura" :width="130" alignment="right" cell-template="totalTemplate" />
-        <DxColumn data-field="montoDetraccion" caption="Detracción (12%)" :width="130" alignment="right" cell-template="detraccionTemplate" />
-        <DxColumn data-field="montoNetoAPagar" caption="Neto Comercial" :width="130" alignment="right" cell-template="netoTemplate" />
-        <DxColumn caption="Archivo" :width="110" alignment="center" cell-template="archivoTemplate" />
-        <DxColumn data-field="estadoCobranza" caption="Estado" :width="190" alignment="center" cell-template="estadoTemplate" />
-        <DxColumn caption="Acciones" :width="170" alignment="center" cell-template="accionesTemplate" />
+        <DxColumn data-field="comprobanteCompleto" caption="Período / Factura"  alignment="left" cell-template="comprobanteTemplate" />
+        <DxColumn data-field="montoTotalFacturado" caption="Total Factura"  alignment="right" cell-template="totalTemplate" />
+        <DxColumn data-field="montoDetraccion" caption="Detracción (12%)" alignment="right" cell-template="detraccionTemplate" />
+        <DxColumn data-field="montoNetoAPagar" caption="Neto Comercial"  alignment="right" cell-template="netoTemplate" />
+        <DxColumn caption="Archivo" alignment="center" cell-template="archivoTemplate" />
+        <DxColumn data-field="estadoCobranza" caption="Estado"  alignment="center" cell-template="estadoTemplate" />
+        <DxColumn caption="Acciones" alignment="center" cell-template="accionesTemplate" />
 
-        <!-- Template: Factura Ref -->
+        <!-- Template: Factura con Período arriba -->
         <template #comprobanteTemplate="{ data }">
-          <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
-            {{ data.data.comprobanteCompleto || `${data.data.serieComprobante}-${String(data.data.numeroComprobante).padStart(8, '0')}` }}
-          </span>
-        </template>
-
-        <!-- Template: Período -->
-        <template #periodoTemplate="{ data }">
-          <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">
-            {{ obtenerNombreMes(data.data.periodoMes) }} {{ data.data.periodoAnio }}
-          </span>
+          <div class="flex flex-col">
+            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-tight">
+              {{ obtenerNombreMes(data.data.periodoMes) }} {{ data.data.periodoAnio }}
+            </span>
+            <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs leading-tight mt-0.5">
+              {{ data.data.comprobanteCompleto || `${data.data.serieComprobante}-${String(data.data.numeroComprobante).padStart(8, '0')}` }}
+            </span>
+          </div>
         </template>
 
         <!-- Template: Monto Total Factura -->
