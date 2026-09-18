@@ -11,6 +11,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  empresaAEditar: {
+    type: Object,
+    default: null
+  },
   isGuardando: {
     type: Boolean,
     default: false
@@ -40,21 +44,39 @@ const formEmpresa = ref({
 
 watch(() => props.visible, (newVal) => {
   if (newVal) {
-    formEmpresa.value = {
-      clienteID: 0,
-      ruc: '',
-      razonSocial: '',
-      nombreComercial: '',
-      subdominioSIAPP: '',
-      codigoConexion: '',
-      tipoCobro: 'POR_ALUMNO',
-      tarifaPorAlumno: 4.00,
-      montoFijoPactado: 1500.00,
-      tipoComprobanteHabitual: '01',
-      porcentajeDetraccion: 12.00,
-      contactoPrincipal: '',
-      emailContacto: ''
-    };
+    if (props.empresaAEditar) {
+      formEmpresa.value = {
+        clienteID: props.empresaAEditar.clienteID || 0,
+        ruc: props.empresaAEditar.ruc || '',
+        razonSocial: props.empresaAEditar.razonSocial || '',
+        nombreComercial: props.empresaAEditar.nombreComercial || '',
+        subdominioSIAPP: props.empresaAEditar.subdominioSIAPP || '',
+        codigoConexion: props.empresaAEditar.codigoConexion || '',
+        tipoCobro: props.empresaAEditar.tipoCobro || 'POR_ALUMNO',
+        tarifaPorAlumno: props.empresaAEditar.tarifaPorAlumno ?? 4.00,
+        montoFijoPactado: props.empresaAEditar.montoFijoPactado ?? 1500.00,
+        tipoComprobanteHabitual: props.empresaAEditar.tipoComprobanteHabitual || '01',
+        porcentajeDetraccion: props.empresaAEditar.porcentajeDetraccion ?? 12.00,
+        contactoPrincipal: props.empresaAEditar.contactoPrincipal || '',
+        emailContacto: props.empresaAEditar.emailContacto || ''
+      };
+    } else {
+      formEmpresa.value = {
+        clienteID: 0,
+        ruc: '',
+        razonSocial: '',
+        nombreComercial: '',
+        subdominioSIAPP: '',
+        codigoConexion: '',
+        tipoCobro: 'POR_ALUMNO',
+        tarifaPorAlumno: 4.00,
+        montoFijoPactado: 1500.00,
+        tipoComprobanteHabitual: '01',
+        porcentajeDetraccion: 12.00,
+        contactoPrincipal: '',
+        emailContacto: ''
+      };
+    }
   }
 });
 
@@ -202,10 +224,10 @@ const handleSubmit = () => {
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
         <div>
           <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-            Registrar Nueva Empresa Educativa
+            {{ empresaAEditar ? 'Editar Datos de la Empresa' : 'Registrar Nueva Empresa Educativa' }}
           </h3>
           <p class="text-xs text-slate-500">
-            Ingresa los datos generales de la institución y sus condiciones contractuales.
+            {{ empresaAEditar ? 'Modifique los datos institucionales o condiciones contractuales de ' + (empresaAEditar.nombreComercial || 'la institución') + '.' : 'Ingresa los datos generales de la institución y sus condiciones contractuales.' }}
           </p>
         </div>
         <button type="button" @click="cerrarModal" class="text-slate-400 hover:text-slate-600">
@@ -304,7 +326,7 @@ const handleSubmit = () => {
             @click="cerrarModal"
           />
           <DxButton
-            :text="isGuardando ? 'Guardando...' : 'Guardar Institución'"
+            :text="isGuardando ? 'Guardando...' : (empresaAEditar ? 'Guardar Cambios' : 'Guardar Institución')"
             :icon="isGuardando ? 'spin' : 'save'"
             type="success"
             styling-mode="contained"

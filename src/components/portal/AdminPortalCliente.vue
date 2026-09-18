@@ -26,11 +26,13 @@ locale('es');
 // Estado de Autenticación de SuperAdmin
 const sesionAdmin = ref(null);
 
-// Pestañas Activas en el Panel Admin: 'empresas' | 'calculo' | 'vouchers'
+// Pestañas Activas en el Panel Admin: 'empresas' | 'vouchers'
 const pestanaActiva = ref('empresas');
 
-// Vista de detalle de manuales para una empresa seleccionada (null = ver lista de empresas)
+// Vista de detalle contextual para una empresa seleccionada (null = ver lista de empresas)
 const empresaSeleccionadaManuales = ref(null);
+const empresaSeleccionadaFacturacion = ref(null);
+const empresaSeleccionadaEditar = ref(null);
 
 // Período de Consulta para Conteo y Facturación
 const anioActual = new Date().getFullYear();
@@ -42,11 +44,15 @@ const filtroMes = ref(mesActual);
 const isCalculando = ref(false);
 const isGuardandoEmpresa = ref(false);
 const isGuardandoManual = ref(false);
+const isGuardandoFactura = ref(false);
+const mensajeFeedback = ref('');
+const tipoFeedback = ref('success');
 
 // Datos del Sistema (cargados dinámicamente desde el backend)
 const empresas = ref([]);
 const calculosClientes = ref([]);
 const vouchers = ref([]);
+const facturas = ref([]);
 const manualesSubidos = ref([]);
 
 // Modales
@@ -68,6 +74,7 @@ const onLoginExitoso = (sesion) => {
   cargarEmpresas();
   cargarManuales();
   cargarVouchers();
+  cargarFacturas();
   sincronizarAlumnos();
 };
 
@@ -80,21 +87,35 @@ const onCerrarSesion = () => {
   empresas.value = [];
   calculosClientes.value = [];
   vouchers.value = [];
+  facturas.value = [];
   manualesSubidos.value = [];
   showSuccess('Sesión administrativa cerrada.');
 };
 
 // Acciones de Navegación y Apertura de Modales
 const abrirModalNuevaEmpresa = () => {
+  empresaSeleccionadaEditar.value = null;
+  mostrarModalEmpresa.value = true;
+};
+
+const abrirModalEditarEmpresa = (empresa) => {
+  empresaSeleccionadaEditar.value = empresa;
   mostrarModalEmpresa.value = true;
 };
 
 const abrirPanelManualesEmpresa = (empresa) => {
   empresaSeleccionadaManuales.value = empresa;
+  empresaSeleccionadaFacturacion.value = null;
+};
+
+const abrirPanelFacturacionEmpresa = (empresa) => {
+  empresaSeleccionadaFacturacion.value = empresa;
+  empresaSeleccionadaManuales.value = null;
 };
 
 const volverAListaEmpresas = () => {
   empresaSeleccionadaManuales.value = null;
+  empresaSeleccionadaFacturacion.value = null;
 };
 
 const abrirModalSubirManual = (manualFijo) => {
@@ -113,6 +134,8 @@ const cargarEmpresas = async () => {
     const response = await apiClient.get('/portal-cliente/admin/clientes');
     empresas.value = Array.isArray(response.data) ? response.data : [];
   } catch (e) {
+    console.error('Error al cargar clientes administrativos:', e);
+    showError(getErrorMessage(e, 'Error al obtener la lista de clientes'));
     empresas.value = [];
   }
 };
@@ -122,6 +145,7 @@ const cargarManuales = async () => {
     const response = await apiClient.get('/portal-cliente/admin/documentos');
     manualesSubidos.value = Array.isArray(response.data) ? response.data : [];
   } catch (e) {
+    console.error('Error al cargar documentos:', e);
     manualesSubidos.value = [];
   }
 };
@@ -131,7 +155,18 @@ const cargarVouchers = async () => {
     const response = await apiClient.get('/portal-cliente/admin/vouchers-pendientes');
     vouchers.value = Array.isArray(response.data) ? response.data : [];
   } catch (e) {
+    console.error('Error al cargar comprobantes/vouchers:', e);
     vouchers.value = [];
+  }
+};
+
+const cargarFacturas = async () => {
+  try {
+    const response = await apiClient.get('/portal-cliente/admin/facturas');
+    facturas.value = Array.isArray(response.data) ? response.data : [];
+  } catch (e) {
+    console.error('Error al cargar facturas emitidas:', e);
+    facturas.value = [];
   }
 };
 
@@ -159,11 +194,14 @@ const onGuardarEmpresa = async (nuevaEmpresa) => {
   try {
     await apiClient.post('/portal-cliente/admin/clientes/guardar', nuevaEmpresa);
     mostrarModalEmpresa.value = false;
-    showSuccess(`¡Institución "${nuevaEmpresa.nombreComercial}" registrada con éxito!`);
+    const mensaje = nuevaEmpresa.clienteID > 0
+      ? `¡Institución "${nuevaEmpresa.nombreComercial}" actualizada con éxito!`
+      : `¡Institución "${nuevaEmpresa.nombreComercial}" registrada con éxito!`;
+    showSuccess(mensaje);
     await cargarEmpresas();
     await sincronizarAlumnos();
   } catch (error) {
-    showError(getErrorMessage(error, 'Error al registrar la institución'));
+    showError(getErrorMessage(error, 'Error al guardar la institución'));
   } finally {
     isGuardandoEmpresa.value = false;
   }
@@ -176,6 +214,7 @@ const onConfirmarEmisionCobranza = async ({ payload, cliente }) => {
     mostrarModalEmitir.value = false;
     showSuccess(`Cobranza ${payload.serieComprobante}-${payload.numeroComprobante} emitida exitosamente.`);
     await sincronizarAlumnos();
+    await cargarFacturas();
   } catch (error) {
     showError(getErrorMessage(error, 'Error al registrar la cobranza'));
   }
@@ -192,6 +231,49 @@ const onConfirmarGuardadoManual = async ({ payload, manualFijo, empresa, formVal
     showError(getErrorMessage(error, 'Error al registrar el documento'));
   } finally {
     isGuardandoManual.value = false;
+  }
+};
+
+const onSubirFactura = async ({ formData, cerrarModal }) => {
+  isGuardandoFactura.value = true;
+  try {
+    await apiClient.post('/portal-cliente/admin/facturas/subir', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    showSuccess('¡Factura subida y registrada exitosamente!');
+    if (cerrarModal) cerrarModal();
+    await cargarFacturas();
+  } catch (error) {
+    showError(getErrorMessage(error, 'Error al subir y registrar la factura'));
+  } finally {
+    isGuardandoFactura.value = false;
+  }
+};
+
+const onNotificarFactura = async (factura) => {
+  try {
+    await apiClient.post('/portal-cliente/admin/facturas/notificar', {
+      cobranzaID: factura.cobranzaID || factura.cobranzaId,
+      emailDestino: factura.emailContacto
+    });
+    showSuccess(`¡Factura notificada con éxito a ${factura.emailContacto || 'la institución'}!`);
+    await cargarFacturas();
+  } catch (error) {
+    showError(getErrorMessage(error, 'Error al notificar la factura por correo'));
+  }
+};
+
+const onMarcarPagadoFactura = async (factura) => {
+  try {
+    await apiClient.post('/portal-cliente/admin/facturas/marcar-pagado', {
+      cobranzaID: factura.cobranzaID || factura.cobranzaId
+    });
+    showSuccess(`¡Factura ${factura.comprobanteCompleto || ''} registrada como PAGADA exitosamente!`);
+    await cargarFacturas();
+  } catch (error) {
+    showError(getErrorMessage(error, 'Error al registrar el estado pagado'));
   }
 };
 
@@ -224,6 +306,7 @@ onMounted(() => {
         cargarEmpresas();
         cargarManuales();
         cargarVouchers();
+        cargarFacturas();
         sincronizarAlumnos();
       } catch (e) {
         sesionAdmin.value = null;
@@ -253,7 +336,7 @@ onMounted(() => {
     <div class="flex border-b border-slate-200 dark:border-slate-800 gap-6 text-sm font-bold overflow-x-auto">
       <button
         type="button"
-        @click="pestanaActiva = 'empresas'; empresaSeleccionadaManuales = null"
+        @click="pestanaActiva = 'empresas'; volverAListaEmpresas()"
         :class="pestanaActiva === 'empresas' ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 pb-3' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 pb-3'"
         class="flex items-center gap-2 transition-colors shrink-0"
       >
@@ -263,22 +346,12 @@ onMounted(() => {
 
       <button
         type="button"
-        @click="pestanaActiva = 'calculo'; empresaSeleccionadaManuales = null"
-        :class="pestanaActiva === 'calculo' ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 pb-3' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 pb-3'"
-        class="flex items-center gap-2 transition-colors shrink-0"
-      >
-        <i class="fa-light fa-calculator"></i>
-        <span>2. Conteo de Alumnos & Facturación</span>
-      </button>
-
-      <button
-        type="button"
-        @click="pestanaActiva = 'vouchers'; empresaSeleccionadaManuales = null"
+        @click="pestanaActiva = 'vouchers'; volverAListaEmpresas()"
         :class="pestanaActiva === 'vouchers' ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 pb-3' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 pb-3'"
         class="flex items-center gap-2 transition-colors shrink-0"
       >
-        <i class="fa-light fa-receipt"></i>
-        <span>3. Conciliación de Vouchers & Detracciones ({{ vouchers.filter(v => v.estadoValidacion === 'EN_REVISION').length }})</span>
+        <i class="fa-light fa-file-invoice-dollar"></i>
+        <span>2. Facturas Emitidas & Conciliación de Vouchers ({{ facturas.length }})</span>
       </button>
     </div>
 
@@ -297,49 +370,66 @@ onMounted(() => {
       </button>
     </div>
 
-    <!-- PESTAÑA 1: EMPRESAS CLIENTES & CARPETA CONTEXTUAL DE MANUALES -->
+    <!-- PESTAÑA 1: EMPRESAS CLIENTES & VISTAS CONTEXTUALES (DIRECTORIO, MANUALES O FACTURACIÓN) -->
     <div v-if="pestanaActiva === 'empresas'">
       <!-- CASO A: TABLA DE DIRECTORIO DE EMPRESAS -->
       <AdminEmpresasTab
-        v-if="!empresaSeleccionadaManuales"
+        v-if="!empresaSeleccionadaManuales && !empresaSeleccionadaFacturacion"
         :empresas="empresas"
         :manuales-subidos="manualesSubidos"
         :total-manuales-fijos="MANUALES_FIJOS_MINEDU.length"
         @nueva-empresa="abrirModalNuevaEmpresa"
         @ver-manuales="abrirPanelManualesEmpresa"
+        @ver-facturacion="abrirPanelFacturacionEmpresa"
+        @editar-empresa="abrirModalEditarEmpresa"
       />
 
       <!-- CASO B: PANEL DE LOS 7 MANUALES FIJOS MINEDU DE LA EMPRESA SELECCIONADA -->
       <AdminManualesEmpresaPanel
-        v-else
+        v-else-if="empresaSeleccionadaManuales"
         :empresa="empresaSeleccionadaManuales"
         :manuales-fijos="MANUALES_FIJOS_MINEDU"
         :manuales-subidos="manualesSubidos"
         @volver="volverAListaEmpresas"
         @subir-manual="abrirModalSubirManual"
       />
+
+      <!-- CASO C: FACTURACIÓN & CONTEO DE ALUMNOS DE LA EMPRESA SELECCIONADA -->
+      <AdminCalculoFacturacionTab
+        v-else-if="empresaSeleccionadaFacturacion"
+        :calculos-clientes="calculosClientes"
+        :empresa-seleccionada="empresaSeleccionadaFacturacion"
+        :empresas="empresas"
+        :facturas="facturas"
+        :is-guardando-factura="isGuardandoFactura"
+        v-model:filtro-mes="filtroMes"
+        v-model:filtro-anio="filtroAnio"
+        @cambiar-periodo="sincronizarAlumnos"
+        @emitir-cobranza="abrirModalEmitir"
+        @subir-factura="onSubirFactura"
+        @notificar-factura="onNotificarFactura"
+        @marcar-pagado="onMarcarPagadoFactura"
+        @volver="volverAListaEmpresas"
+      />
     </div>
 
-    <!-- PESTAÑA 2: CONTEO DE ALUMNOS & FACTURACIÓN -->
-    <AdminCalculoFacturacionTab
-      v-else-if="pestanaActiva === 'calculo'"
-      :calculos-clientes="calculosClientes"
-      v-model:filtro-mes="filtroMes"
-      v-model:filtro-anio="filtroAnio"
-      @cambiar-periodo="sincronizarAlumnos"
-      @emitir-cobranza="abrirModalEmitir"
-    />
-
-    <!-- PESTAÑA 3: CONCILIACIÓN DE VOUCHERS -->
+    <!-- PESTAÑA 2: BANDEJA DE FACTURAS EMITIDAS Y CONCILIACIÓN DE VOUCHERS -->
     <AdminVouchersTab
       v-else-if="pestanaActiva === 'vouchers'"
       :vouchers="vouchers"
+      :facturas="facturas"
+      :empresas="empresas"
+      :is-guardando-factura="isGuardandoFactura"
       @responder-voucher="onResponderVoucher"
+      @subir-factura="onSubirFactura"
+      @notificar-factura="onNotificarFactura"
+      @marcar-pagado="onMarcarPagadoFactura"
     />
 
-    <!-- MODAL 1: REGISTRAR NUEVA EMPRESA -->
+    <!-- MODAL 1: REGISTRAR / EDITAR EMPRESA -->
     <AdminEmpresaModal
       v-model:visible="mostrarModalEmpresa"
+      :empresa-a-editar="empresaSeleccionadaEditar"
       :is-guardando="isGuardandoEmpresa"
       @guardar="onGuardarEmpresa"
     />
