@@ -1,4 +1,4 @@
-import notify from 'devextreme/cjs/ui/notify.js';
+import notify from 'devextreme/ui/notify';
 
 /**
  * Configuración global para el stack de notificaciones DevExtreme

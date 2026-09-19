@@ -1,9 +1,6 @@
 <script setup>
+import './admin/devextreme-init';
 import { ref, onMounted } from 'vue';
-import config from 'devextreme/core/config';
-import { locale, loadMessages } from 'devextreme/localization';
-import esMessages from 'devextreme/localization/messages/es.json';
-import { licenseKey } from './admin/devextreme-license';
 import { MANUALES_FIJOS_MINEDU } from './admin/manualesMineduConstants';
 import apiClient from '@/api/axiosConfig';
 import { showSuccess, showError } from '@/services/notification';
@@ -15,11 +12,6 @@ import AdminCalculoFacturacionTab from './admin/AdminCalculoFacturacionTab.vue';
 import AdminEmpresaModal from './admin/AdminEmpresaModal.vue';
 import AdminSubirManualModal from './admin/AdminSubirManualModal.vue';
 import AdminLogin from './admin/AdminLogin.vue';
-
-// Registrar licencia de DevExtreme y configurar idioma español como en SIAPPClient
-config({ licenseKey });
-loadMessages(esMessages);
-locale('es');
 
 // Estado de Autenticación de SuperAdmin
 const sesionAdmin = ref(null);
