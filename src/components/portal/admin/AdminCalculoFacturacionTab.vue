@@ -266,6 +266,7 @@
     <AdminSubirFacturaModal
       v-model:visible="mostrarModalSubirFactura"
       :empresas="listaEmpresasModal"
+      :calculos-clientes="calculosClientes"
       :is-guardando="isGuardandoFactura"
       @guardar="onGuardarFacturaModal"
     />

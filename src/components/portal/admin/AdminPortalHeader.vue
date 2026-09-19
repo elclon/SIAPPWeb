@@ -1,20 +1,3 @@
-<script setup>
-import { DxButton } from 'devextreme-vue/button';
-
-defineProps({
-  isCalculando: {
-    type: Boolean,
-    default: false
-  },
-  sesionAdmin: {
-    type: Object,
-    default: null
-  }
-});
-
-defineEmits(['nueva-empresa', 'sincronizar', 'cerrar-sesion']);
-</script>
-
 <template>
   <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
     <div class="space-y-2">
@@ -38,31 +21,33 @@ defineEmits(['nueva-empresa', 'sincronizar', 'cerrar-sesion']);
     <!-- Botones Principales de Acción con DevExtreme -->
     <div class="flex items-center gap-3 flex-wrap">
       <DxButton
-        text="Registrar Nueva Empresa"
-        icon="plus"
-        type="success"
-        styling-mode="contained"
-        @click="$emit('nueva-empresa')"
-      />
-
-      <DxButton
-        :text="isCalculando ? 'Sincronizando...' : 'Sincronizar Alumnos'"
-        :icon="isCalculando ? 'spin' : 'refresh'"
-        :disabled="isCalculando"
-        type="default"
-        styling-mode="contained"
-        @click="$emit('sincronizar')"
-      />
-
-      <DxButton
         v-if="sesionAdmin"
         text="Cerrar Sesión"
         icon="export"
         type="danger"
-        styling-mode="outlined"
+        styling-mode="contained"
         hint="Cerrar Sesión de Administrador"
         @click="$emit('cerrar-sesion')"
       />
     </div>
   </div>
 </template>
+
+<script setup>
+import { DxButton } from 'devextreme-vue/button';
+
+defineProps({
+  isCalculando: {
+    type: Boolean,
+    default: false
+  },
+  sesionAdmin: {
+    type: Object,
+    default: null
+  }
+});
+
+defineEmits(['nueva-empresa', 'sincronizar', 'cerrar-sesion']);
+</script>
+
+

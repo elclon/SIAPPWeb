@@ -2,7 +2,9 @@
 import { ref, computed, watch } from 'vue';
 import { DxForm, DxGroupItem, DxSimpleItem, DxRequiredRule } from 'devextreme-vue/form';
 import { DxButton } from 'devextreme-vue/button';
-import { showWarning } from '@/services/notification';
+import apiClient from '@/api/axiosConfig';
+import { showSuccess, showError, showWarning } from '@/services/notification';
+import { getErrorMessage } from '@/services/errorHandler';
 
 const props = defineProps({
   visible: {
@@ -12,6 +14,10 @@ const props = defineProps({
   empresas: {
     type: Array,
     required: true
+  },
+  calculosClientes: {
+    type: Array,
+    default: () => []
   },
   isGuardando: {
     type: Boolean,
@@ -24,6 +30,8 @@ const emit = defineEmits(['update:visible', 'guardar']);
 const dxFormRef = ref(null);
 const archivoSeleccionado = ref(null);
 const inputArchivoRef = ref(null);
+const isCalculandoMonto = ref(false);
+const detalleCalculo = ref(null);
 
 const anioActual = new Date().getFullYear();
 const mesActual = new Date().getMonth() + 1;
@@ -32,30 +40,121 @@ const formFactura = ref({
   clienteID: null,
   periodoMes: mesActual,
   periodoAnio: anioActual,
-  monto: 1500.00,
+  monto: 0,
   serieComprobante: 'F001',
   numeroComprobante: null,
   tipoComprobante: '01'
 });
 
+// Empresa seleccionada actualmente
+const empresaActiva = computed(() => {
+  return props.empresas.find(e => e.clienteID === formFactura.value.clienteID) || null;
+});
+
+const esTipoFijo = computed(() => {
+  return empresaActiva.value?.tipoCobro === 'FIJO' || empresaActiva.value?.tipoCobro === 'TARIFA_FIJA';
+});
+
+const tarifaPorAlumnoEmpresa = computed(() => {
+  return Number(empresaActiva.value?.tarifaPorAlumno ?? 4.00).toFixed(2);
+});
+
+// Función para aplicar la configuración de la empresa seleccionada
+const aplicarEmpresa = (empresa) => {
+  if (!empresa) return;
+
+  if (empresa.tipoCobro === 'FIJO' || empresa.tipoCobro === 'TARIFA_FIJA') {
+    // Caso 1: Tarifa Fija Mensual -> Se llena directamente el campo de monto
+    formFactura.value.monto = Number(empresa.montoFijoPactado) || 0;
+    detalleCalculo.value = null;
+  } else {
+    // Caso 2: Cálculo por Alumno -> Aparece tarifa por alumno y botón de calcular monto
+    detalleCalculo.value = null;
+    formFactura.value.monto = 0;
+
+    // Si ya existe un cálculo previo cargado en memoria para esta empresa, lo pre-asignamos
+    if (props.calculosClientes && props.calculosClientes.length > 0) {
+      const cal = props.calculosClientes.find(c => c.clienteID === empresa.clienteID);
+      if (cal && cal.alumnosDetectados) {
+        const tarifa = Number(cal.tarifaAplicada || empresa.tarifaPorAlumno || 4.00);
+        const alumnos = Number(cal.alumnosDetectados || 0);
+        const total = Number(cal.montoTotal) || Number((alumnos * tarifa).toFixed(2));
+        formFactura.value.monto = total;
+        detalleCalculo.value = {
+          alumnos,
+          tarifa,
+          total
+        };
+      }
+    }
+  }
+};
+
+// Función para calcular monto en base a alumnos activos en la BD
+const calcularMontoAlumnos = async () => {
+  if (!empresaActiva.value) {
+    showWarning('Seleccione primero una institución educativa cliente.');
+    return;
+  }
+
+  isCalculandoMonto.value = true;
+  try {
+    const response = await apiClient.get('/portal-cliente/admin/calcular-alumnos', {
+      params: {
+        anio: formFactura.value.periodoAnio,
+        mes: formFactura.value.periodoMes
+      }
+    });
+
+    const lista = Array.isArray(response.data) ? response.data : [];
+    const cal = lista.find(c => c.clienteID === empresaActiva.value.clienteID);
+
+    if (cal) {
+      const tarifa = Number(cal.tarifaAplicada || empresaActiva.value.tarifaPorAlumno || 4.00);
+      const alumnos = Number(cal.alumnosDetectados || 0);
+      const total = Number(cal.montoTotal) || Number((alumnos * tarifa).toFixed(2));
+
+      formFactura.value.monto = total;
+      detalleCalculo.value = {
+        alumnos,
+        tarifa,
+        total,
+        estadoConexion: cal.estadoConexionBD,
+        mensaje: cal.mensajeConexion
+      };
+
+      showSuccess(`Monto calculado: ${alumnos} alumnos × S/ ${tarifa.toFixed(2)} = S/ ${total.toFixed(2)}`);
+    } else {
+      const tarifa = Number(empresaActiva.value.tarifaPorAlumno || 4.00);
+      showWarning('No se encontró conteo automático en línea. Puede ingresar el monto manualmente.');
+    }
+  } catch (error) {
+    console.error('Error al calcular monto por alumnos:', error);
+    showError(getErrorMessage(error, 'Error al calcular alumnos para el período seleccionado.'));
+  } finally {
+    isCalculandoMonto.value = false;
+  }
+};
+
 watch(() => props.visible, (val) => {
   if (val) {
     archivoSeleccionado.value = null;
+    detalleCalculo.value = null;
+    const empresaInicial = props.empresas.length > 0 ? props.empresas[0] : null;
     formFactura.value = {
-      clienteID: props.empresas.length > 0 ? props.empresas[0].clienteID : null,
+      clienteID: empresaInicial ? empresaInicial.clienteID : null,
       periodoMes: mesActual,
       periodoAnio: anioActual,
-      monto: 1500.00,
+      monto: 0,
       serieComprobante: 'F001',
       numeroComprobante: null,
       tipoComprobante: '01'
     };
-  }
-});
 
-// Empresa seleccionada actualmente
-const empresaActiva = computed(() => {
-  return props.empresas.find(e => e.clienteID === formFactura.value.clienteID) || null;
+    if (empresaInicial) {
+      aplicarEmpresa(empresaInicial);
+    }
+  }
 });
 
 // Cálculo transparente de detracción y neto en tiempo real (SPOT SUNAT aplica solo si monto > S/ 700)
@@ -82,9 +181,7 @@ const clienteOptions = computed(() => ({
     formFactura.value.clienteID = e.value;
     const emp = props.empresas.find(x => x.clienteID === e.value);
     if (emp) {
-      if (emp.tipoCobro === 'FIJO' && emp.montoFijoPactado) {
-        formFactura.value.monto = emp.montoFijoPactado;
-      }
+      aplicarEmpresa(emp);
     }
   }
 }));
@@ -128,7 +225,7 @@ const numeroOptions = computed(() => ({
 
 const montoOptions = computed(() => ({
   format: 'S/ #,##0.00',
-  min: 0.1,
+  min: 0,
   step: 10
 }));
 
@@ -220,7 +317,7 @@ const handleSubmit = () => {
           label-location="top"
         >
           <!-- Grupo 1: Institución y Período -->
-          <DxGroupItem :col-count="3" caption="Destinatario y Período">
+          <DxGroupItem :col-count="3">
             <DxSimpleItem
               data-field="clienteID"
               :col-span="3"
@@ -246,10 +343,89 @@ const handleSubmit = () => {
             >
               <DxRequiredRule message="Seleccione el año facturado" />
             </DxSimpleItem>
+
+            <!-- Ítem de plantilla contextual para Tarifa Fija / Por Alumno y Botón de Cálculo -->
+            <DxSimpleItem
+              v-if="empresaActiva"
+              :col-span="3"
+              template="tarifaTemplate"
+            />
           </DxGroupItem>
 
+          <!-- Slot de Plantilla Contextual según tipo de cobro (Regla 2.6) -->
+          <template #tarifaTemplate>
+            <div
+              class="p-3.5 rounded-2xl border transition-all my-1"
+              :class="esTipoFijo ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/70' : 'bg-blue-50/70 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/60'"
+            >
+              <!-- CASO 1: EMPRESA CON TARIFA FIJA -->
+              <div v-if="esTipoFijo" class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 text-base shrink-0">
+                    <i class="fa-light fa-tag"></i>
+                  </div>
+                  <div>
+                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                      Modalidad: Tarifa Fija Mensual
+                    </span>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400">
+                      Monto pactado: <strong class="text-slate-800 dark:text-slate-200 font-mono">S/ {{ Number(empresaActiva.montoFijoPactado || 0).toFixed(2) }}</strong> (Llenado automáticamente en el monto de la factura).
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CASO 2: EMPRESA CON CÁLCULO POR ALUMNO -->
+              <div v-else class="space-y-2.5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/80 flex items-center justify-center text-blue-600 dark:text-blue-300 text-base shrink-0">
+                      <i class="fa-light fa-users"></i>
+                    </div>
+                    <div>
+                      <span class="text-xs font-bold text-blue-900 dark:text-blue-200 block">
+                        Modalidad: Cobro por Alumno Matriculado
+                      </span>
+                      <span class="text-[11px] text-blue-700 dark:text-blue-300">
+                        Monto por alumno configurado: <strong class="font-mono font-black text-blue-900 dark:text-blue-100 text-xs">S/ {{ tarifaPorAlumnoEmpresa }}</strong> por alumno
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- BOTÓN VISIBLE: CALCULAR MONTO -->
+                  <DxButton
+                    text="Calcular monto"
+                    icon="calculator"
+                    type="default"
+                    styling-mode="outlined"
+                    :disabled="isCalculandoMonto"
+                    class="font-semibold text-xs shrink-0"
+                    @click="calcularMontoAlumnos"
+                  />
+                </div>
+
+                <!-- Detalle del cálculo realizado -->
+                <div
+                  v-if="detalleCalculo"
+                  class="p-2 rounded-xl bg-white dark:bg-slate-900 border border-blue-100 dark:border-blue-900 text-xs flex items-center justify-between animate-in fade-in"
+                >
+                  <div class="flex items-center gap-2">
+                    <i class="fa-light fa-circle-check text-emerald-600 text-sm"></i>
+                    <span class="text-slate-700 dark:text-slate-300">
+                      Conteo auditado: <strong>{{ detalleCalculo.alumnos }} alumnos</strong> &times; S/ {{ Number(detalleCalculo.tarifa).toFixed(2) }}
+                    </span>
+                  </div>
+                  <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
+                    Monto Calculado: S/ {{ Number(detalleCalculo.total).toFixed(2) }}
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </template>
+
           <!-- Grupo 2: Comprobante y Monto -->
-          <DxGroupItem :col-count="3" caption="Datos del Comprobante">
+          <DxGroupItem :col-count="3" >
             <DxSimpleItem
               data-field="serieComprobante"
               :editor-options="serieOptions"
