@@ -190,7 +190,7 @@
             class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
           >
             <i class="fa-light fa-circle-check text-xs"></i>
-            <span>Pendiente de Pago</span>
+            <span>Pagado</span>
           </span>
 
           <!-- Otros estados -->

@@ -12,9 +12,7 @@ import AdminPortalHeader from './admin/AdminPortalHeader.vue';
 import AdminEmpresasTab from './admin/AdminEmpresasTab.vue';
 import AdminManualesEmpresaPanel from './admin/AdminManualesEmpresaPanel.vue';
 import AdminCalculoFacturacionTab from './admin/AdminCalculoFacturacionTab.vue';
-import AdminVouchersTab from './admin/AdminVouchersTab.vue';
 import AdminEmpresaModal from './admin/AdminEmpresaModal.vue';
-import AdminEmitirCobranzaModal from './admin/AdminEmitirCobranzaModal.vue';
 import AdminSubirManualModal from './admin/AdminSubirManualModal.vue';
 import AdminLogin from './admin/AdminLogin.vue';
 
@@ -25,9 +23,6 @@ locale('es');
 
 // Estado de Autenticación de SuperAdmin
 const sesionAdmin = ref(null);
-
-// Pestañas Activas en el Panel Admin: 'empresas' | 'vouchers'
-const pestanaActiva = ref('empresas');
 
 // Vista de detalle contextual para una empresa seleccionada (null = ver lista de empresas)
 const empresaSeleccionadaManuales = ref(null);
@@ -51,14 +46,11 @@ const tipoFeedback = ref('success');
 // Datos del Sistema (cargados dinámicamente desde el backend)
 const empresas = ref([]);
 const calculosClientes = ref([]);
-const vouchers = ref([]);
 const facturas = ref([]);
 const manualesSubidos = ref([]);
 
 // Modales
 const mostrarModalEmpresa = ref(false);
-const mostrarModalEmitir = ref(false);
-const clienteSeleccionadoParaEmitir = ref(null);
 const mostrarModalSubirManualFijo = ref(false);
 const manualFijoSeleccionado = ref(null);
 
@@ -73,7 +65,6 @@ const onLoginExitoso = (sesion) => {
   }
   cargarEmpresas();
   cargarManuales();
-  cargarVouchers();
   cargarFacturas();
   sincronizarAlumnos();
 };
@@ -86,7 +77,6 @@ const onCerrarSesion = () => {
   }
   empresas.value = [];
   calculosClientes.value = [];
-  vouchers.value = [];
   facturas.value = [];
   manualesSubidos.value = [];
   showSuccess('Sesión administrativa cerrada.');
@@ -123,11 +113,6 @@ const abrirModalSubirManual = (manualFijo) => {
   mostrarModalSubirManualFijo.value = true;
 };
 
-const abrirModalEmitir = (item) => {
-  clienteSeleccionadoParaEmitir.value = item;
-  mostrarModalEmitir.value = true;
-};
-
 // Cargar Datos Dinámicos desde el Backend utilizando apiClient
 const cargarEmpresas = async () => {
   try {
@@ -147,16 +132,6 @@ const cargarManuales = async () => {
   } catch (e) {
     console.error('Error al cargar documentos:', e);
     manualesSubidos.value = [];
-  }
-};
-
-const cargarVouchers = async () => {
-  try {
-    const response = await apiClient.get('/portal-cliente/admin/vouchers-pendientes');
-    vouchers.value = Array.isArray(response.data) ? response.data : [];
-  } catch (e) {
-    console.error('Error al cargar comprobantes/vouchers:', e);
-    vouchers.value = [];
   }
 };
 
@@ -204,19 +179,6 @@ const onGuardarEmpresa = async (nuevaEmpresa) => {
     showError(getErrorMessage(error, 'Error al guardar la institución'));
   } finally {
     isGuardandoEmpresa.value = false;
-  }
-};
-
-const onConfirmarEmisionCobranza = async ({ payload, cliente }) => {
-  try {
-    await apiClient.post('/portal-cliente/admin/emitir-cobranza', payload);
-    cliente.yaFacturadoEnPeriodo = true;
-    mostrarModalEmitir.value = false;
-    showSuccess(`Cobranza ${payload.serieComprobante}-${payload.numeroComprobante} emitida exitosamente.`);
-    await sincronizarAlumnos();
-    await cargarFacturas();
-  } catch (error) {
-    showError(getErrorMessage(error, 'Error al registrar la cobranza'));
   }
 };
 
@@ -277,26 +239,6 @@ const onMarcarPagadoFactura = async (factura) => {
   }
 };
 
-const onResponderVoucher = async ({ pago, estado }) => {
-  const accion = estado === 'APROBADO' ? 'aprobar' : 'rechazar';
-  if (!confirm(`¿Está seguro de ${accion} este comprobante de pago de S/ ${pago.montoPagado.toFixed(2)}?`)) {
-    return;
-  }
-
-  try {
-    await apiClient.post('/portal-cliente/admin/validar-voucher', {
-      pagoID: pago.pagoID,
-      estadoValidacion: estado,
-      motivoRechazo: estado === 'RECHAZADO' ? 'Número de operación no coincide con el estado bancario' : null
-    });
-
-    showSuccess(`Comprobante ${estado.toLowerCase()} correctamente.`);
-    await cargarVouchers();
-  } catch (error) {
-    showError(getErrorMessage(error, 'Error al actualizar el estado del comprobante'));
-  }
-};
-
 onMounted(() => {
   if (typeof window !== 'undefined') {
     const sesionGuardada = sessionStorage.getItem('siapp_admin_sesion') || localStorage.getItem('siapp_admin_sesion');
@@ -305,7 +247,6 @@ onMounted(() => {
         sesionAdmin.value = JSON.parse(sesionGuardada);
         cargarEmpresas();
         cargarManuales();
-        cargarVouchers();
         cargarFacturas();
         sincronizarAlumnos();
       } catch (e) {
@@ -332,29 +273,6 @@ onMounted(() => {
       @cerrar-sesion="onCerrarSesion"
     />
 
-    <!-- PESTAÑAS DE NAVEGACIÓN -->
-    <div class="flex border-b border-slate-200 dark:border-slate-800 gap-6 text-sm font-bold overflow-x-auto">
-      <button
-        type="button"
-        @click="pestanaActiva = 'empresas'; volverAListaEmpresas()"
-        :class="pestanaActiva === 'empresas' ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 pb-3' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 pb-3'"
-        class="flex items-center gap-2 transition-colors shrink-0"
-      >
-        <i class="fa-light fa-building-columns"></i>
-        <span>1. Empresas Clientes ({{ empresas.length }})</span>
-      </button>
-
-      <button
-        type="button"
-        @click="pestanaActiva = 'vouchers'; volverAListaEmpresas()"
-        :class="pestanaActiva === 'vouchers' ? 'border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 pb-3' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 pb-3'"
-        class="flex items-center gap-2 transition-colors shrink-0"
-      >
-        <i class="fa-light fa-file-invoice-dollar"></i>
-        <span>2. Facturas Emitidas & Conciliación de Vouchers ({{ facturas.length }})</span>
-      </button>
-    </div>
-
     <!-- ALERTA DE FEEDBACK -->
     <div
       v-if="mensajeFeedback"
@@ -370,8 +288,8 @@ onMounted(() => {
       </button>
     </div>
 
-    <!-- PESTAÑA 1: EMPRESAS CLIENTES & VISTAS CONTEXTUALES (DIRECTORIO, MANUALES O FACTURACIÓN) -->
-    <div v-if="pestanaActiva === 'empresas'">
+    <!-- VISTAS CONTEXTUALES DE EMPRESAS CLIENTES: DIRECTORIO, MANUALES O FACTURACIÓN -->
+    <div>
       <!-- CASO A: TABLA DE DIRECTORIO DE EMPRESAS -->
       <AdminEmpresasTab
         v-if="!empresaSeleccionadaManuales && !empresaSeleccionadaFacturacion"
@@ -405,26 +323,12 @@ onMounted(() => {
         v-model:filtro-mes="filtroMes"
         v-model:filtro-anio="filtroAnio"
         @cambiar-periodo="sincronizarAlumnos"
-        @emitir-cobranza="abrirModalEmitir"
         @subir-factura="onSubirFactura"
         @notificar-factura="onNotificarFactura"
         @marcar-pagado="onMarcarPagadoFactura"
         @volver="volverAListaEmpresas"
       />
     </div>
-
-    <!-- PESTAÑA 2: BANDEJA DE FACTURAS EMITIDAS Y CONCILIACIÓN DE VOUCHERS -->
-    <AdminVouchersTab
-      v-else-if="pestanaActiva === 'vouchers'"
-      :vouchers="vouchers"
-      :facturas="facturas"
-      :empresas="empresas"
-      :is-guardando-factura="isGuardandoFactura"
-      @responder-voucher="onResponderVoucher"
-      @subir-factura="onSubirFactura"
-      @notificar-factura="onNotificarFactura"
-      @marcar-pagado="onMarcarPagadoFactura"
-    />
 
     <!-- MODAL 1: REGISTRAR / EDITAR EMPRESA -->
     <AdminEmpresaModal
@@ -434,16 +338,7 @@ onMounted(() => {
       @guardar="onGuardarEmpresa"
     />
 
-    <!-- MODAL 2: EMITIR COBRANZA MENSUAL -->
-    <AdminEmitirCobranzaModal
-      v-model:visible="mostrarModalEmitir"
-      :cliente="clienteSeleccionadoParaEmitir"
-      :filtro-mes="filtroMes"
-      :filtro-anio="filtroAnio"
-      @confirmar="onConfirmarEmisionCobranza"
-    />
-
-    <!-- MODAL 3: SUBIR O REEMPLAZAR MANUAL MINEDU CON LOGO -->
+    <!-- MODAL 2: SUBIR O REEMPLAZAR MANUAL MINEDU CON LOGO -->
     <AdminSubirManualModal
       v-model:visible="mostrarModalSubirManualFijo"
       :empresa="empresaSeleccionadaManuales"
