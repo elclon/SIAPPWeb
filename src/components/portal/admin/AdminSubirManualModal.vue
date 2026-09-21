@@ -1,13 +1,68 @@
+<template>
+  <div class="p-2 space-y-4 max-h-[85vh] overflow-y-auto">
+    <div class="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs text-blue-800 dark:text-blue-300">
+      <strong>Manual Requerido MINEDU:</strong> {{ manualFijo?.tituloBase }}
+      <span v-if="empresa?.nombreComercial" class="block mt-1 font-semibold">
+        Institución: {{ empresa.nombreComercial }}
+      </span>
+    </div>
+
+    <!-- Regla 2.1: Envoltura de Formulario Obligatoria -->
+    <form @submit.prevent="handleSubmit" class="space-y-3.5">
+      <!-- Regla 2.2: DxForm único -->
+      <DxForm
+        ref="dxFormRef"
+        :form-data="formSubidaManual"
+        validation-group="manualValidationGroup"
+        :col-count="2"
+        label-location="top"
+      >
+        <DxSimpleItem data-field="tituloPersonalizado" :col-span="2" caption="Título Oficial" :editor-options="tituloOptions">
+          <DxRequiredRule message="El título es obligatorio" />
+        </DxSimpleItem>
+
+        <DxSimpleItem data-field="version" caption="Versión" :editor-options="versionOptions" />
+
+        <DxSimpleItem data-field="tamanoArchivoMB" caption="Tamaño Estimado (MB)" editor-type="dxNumberBox" :editor-options="tamanoOptions">
+          <DxRequiredRule message="Requerido" />
+        </DxSimpleItem>
+
+        <DxSimpleItem data-field="urlArchivo" :col-span="2" caption="Ruta o URL del PDF" :editor-options="urlArchivoOptions">
+          <DxRequiredRule message="La ruta del archivo es obligatoria" />
+        </DxSimpleItem>
+      </DxForm>
+
+      <!-- Regla 6.3: Orden estricto [ Cancelar ] [ Confirmar y Publicar ] -->
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+        <DxButton
+          text="Cancelar"
+          type="normal"
+          styling-mode="outlined"
+          :disabled="isGuardando"
+          @click="onCancelar"
+        />
+        <DxButton
+          :text="isGuardando ? 'Guardando...' : 'Confirmar y Publicar Manual'"
+          :icon="isGuardando ? 'fa-light fa-spinner fa-spin' : 'upload'"
+          type="default"
+          styling-mode="contained"
+          :disabled="isGuardando"
+          use-submit-behavior="true"
+        />
+      </div>
+    </form>
+  </div>
+</template>
+
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { DxForm, DxGroupItem, DxSimpleItem, DxRequiredRule } from 'devextreme-vue/form';
 import { DxButton } from 'devextreme-vue/button';
+import apiClient from '@/api/axiosConfig';
+import { showSuccess, showError } from '@/services/notification';
+import { getErrorMessage } from '@/services/errorHandler';
 
 const props = defineProps({
-  visible: {
-    type: Boolean,
-    default: false
-  },
   empresa: {
     type: Object,
     default: null
@@ -19,16 +74,13 @@ const props = defineProps({
   manualSubido: {
     type: Object,
     default: null
-  },
-  isGuardando: {
-    type: Boolean,
-    default: false
   }
 });
 
-const emit = defineEmits(['update:visible', 'guardar']);
+const emit = defineEmits(['close']);
 
 const dxFormRef = ref(null);
+const isGuardando = ref(false);
 
 const formSubidaManual = ref({
   categoriaID: 1,
@@ -39,8 +91,8 @@ const formSubidaManual = ref({
   urlArchivo: ''
 });
 
-watch(() => [props.visible, props.manualFijo, props.empresa], () => {
-  if (props.visible && props.manualFijo && props.empresa) {
+onMounted(() => {
+  if (props.manualFijo && props.empresa) {
     const yaSubido = props.manualSubido;
     const codInstitucion = props.empresa.codigoConexion || 'instituto';
 
@@ -53,7 +105,7 @@ watch(() => [props.visible, props.manualFijo, props.empresa], () => {
       urlArchivo: yaSubido ? yaSubido.urlArchivo : `/documentos/${codInstitucion}/${props.manualFijo.codigoFijo.toLowerCase()}-${codInstitucion}.pdf`
     };
   }
-}, { immediate: true });
+});
 
 // Regla 2.4: Editor Options con computed(...)
 const tituloOptions = computed(() => ({
@@ -74,107 +126,37 @@ const urlArchivoOptions = computed(() => ({
   placeholder: '/documentos/siapp/manual-academico-siapp.pdf'
 }));
 
-const cerrarModal = () => {
-  emit('update:visible', false);
-};
-
-// Regla 6.1: Validación con DxForm antes de emitir
-const handleSubmit = () => {
+const handleSubmit = async () => {
   const validationResult = dxFormRef.value?.instance?.validate();
   if (!validationResult || !validationResult.isValid) {
     return;
   }
 
-  const payload = {
-    clienteIDExclusivo: props.empresa.clienteID,
-    categoriaID: formSubidaManual.value.categoriaID,
-    titulo: formSubidaManual.value.tituloPersonalizado,
-    descripcion: props.manualFijo.descripcion,
-    version: formSubidaManual.value.version,
-    tipoArchivo: 'PDF',
-    tamanoArchivoMB: parseFloat(formSubidaManual.value.tamanoArchivoMB),
-    urlArchivo: formSubidaManual.value.urlArchivo,
-    esPublicoTodosLosClientes: false
-  };
+  isGuardando.value = true;
+  try {
+    const payload = {
+      clienteIDExclusivo: props.empresa.clienteID,
+      categoriaID: formSubidaManual.value.categoriaID,
+      titulo: formSubidaManual.value.tituloPersonalizado,
+      descripcion: props.manualFijo.descripcion,
+      version: formSubidaManual.value.version,
+      tipoArchivo: 'PDF',
+      tamanoArchivoMB: parseFloat(formSubidaManual.value.tamanoArchivoMB),
+      urlArchivo: formSubidaManual.value.urlArchivo,
+      esPublicoTodosLosClientes: false
+    };
 
-  emit('guardar', {
-    payload,
-    manualFijo: props.manualFijo,
-    empresa: props.empresa,
-    formValues: { ...formSubidaManual.value }
-  });
+    await apiClient.post('/portal-cliente/admin/documentos/guardar', payload);
+    showSuccess(`¡${formSubidaManual.value.tituloPersonalizado} guardado con éxito para ${props.empresa.nombreComercial}!`);
+    emit('close', { canceled: false, data: payload });
+  } catch (error) {
+    showError(getErrorMessage(error, 'Error al registrar el documento'));
+  } finally {
+    isGuardando.value = false;
+  }
+};
+
+const onCancelar = () => {
+  emit('close', { canceled: true });
 };
 </script>
-
-<template>
-  <div
-    v-if="visible"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in"
-  >
-    <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-        <div>
-          <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-            Cargar Manual con Logo Institucional
-          </h3>
-          <span class="text-xs text-slate-500 font-semibold">
-            Institución: {{ empresa?.nombreComercial }}
-          </span>
-        </div>
-        <button type="button" @click="cerrarModal" class="text-slate-400 hover:text-slate-600">
-          <i class="fa-light fa-xmark text-lg"></i>
-        </button>
-      </div>
-
-      <!-- Regla 2.1: Envoltura de Formulario Obligatoria -->
-      <form @submit.prevent="handleSubmit" class="space-y-3.5">
-        
-        <div class="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs text-blue-800 dark:text-blue-300">
-          <strong>Manual Requerido MINEDU:</strong> {{ manualFijo?.tituloBase }}
-        </div>
-
-        <!-- Regla 2.2: DxForm único -->
-        <DxForm
-          ref="dxFormRef"
-          :form-data="formSubidaManual"
-          validation-group="manualValidationGroup"
-          :col-count="2"
-          label-location="top"
-        >
-          <DxSimpleItem data-field="tituloPersonalizado" :col-span="2" caption="Título Oficial" :editor-options="tituloOptions">
-            <DxRequiredRule message="El título es obligatorio" />
-          </DxSimpleItem>
-
-          <DxSimpleItem data-field="version" caption="Versión" :editor-options="versionOptions" />
-
-          <DxSimpleItem data-field="tamanoArchivoMB" caption="Tamaño Estimado (MB)" editor-type="dxNumberBox" :editor-options="tamanoOptions">
-            <DxRequiredRule message="Requerido" />
-          </DxSimpleItem>
-
-          <DxSimpleItem data-field="urlArchivo" :col-span="2" caption="Ruta o URL del PDF" :editor-options="urlArchivoOptions">
-            <DxRequiredRule message="La ruta del archivo es obligatoria" />
-          </DxSimpleItem>
-        </DxForm>
-
-        <!-- Regla 6.3: Orden estricto [ Cancelar ] [ Confirmar y Publicar ] -->
-        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-          <DxButton
-            text="Cancelar"
-            type="normal"
-            styling-mode="outlined"
-            :disabled="isGuardando"
-            @click="cerrarModal"
-          />
-          <DxButton
-            :text="isGuardando ? 'Guardando...' : 'Confirmar y Publicar Manual'"
-            :icon="isGuardando ? 'spin' : 'upload'"
-            type="default"
-            styling-mode="contained"
-            :disabled="isGuardando"
-            use-submit-behavior="true"
-          />
-        </div>
-      </form>
-    </div>
-  </div>
-</template>

@@ -1,4 +1,3 @@
-
 <template>
   <div class="space-y-6 animate-in fade-in">
 
@@ -35,7 +34,7 @@
           type="default"
           styling-mode="contained"
           class="font-bold shadow-md text-sm px-4 py-2"
-          @click="mostrarModalSubirFactura = true"
+          @click="abrirModalSubirFactura"
         />
       </div>
     </div>
@@ -105,12 +104,12 @@
         <DxPager :show-page-size-selector="true" :allowed-page-sizes="[5, 10, 20]" :show-info="true" />
 
         <!-- Regla 2.12: Cada DxColumn completa en una sola línea horizontal -->
-        <DxColumn data-field="comprobanteCompleto" caption="Período / Factura"  alignment="left" cell-template="comprobanteTemplate" />
-        <DxColumn data-field="montoTotalFacturado" caption="Total Factura"  alignment="right" cell-template="totalTemplate" />
+        <DxColumn data-field="comprobanteCompleto" caption="Período / Factura" alignment="left" cell-template="comprobanteTemplate" />
+        <DxColumn data-field="montoTotalFacturado" caption="Total Factura" alignment="right" cell-template="totalTemplate" />
         <DxColumn data-field="montoDetraccion" caption="Detracción (12%)" alignment="right" cell-template="detraccionTemplate" />
-        <DxColumn data-field="montoNetoAPagar" caption="Neto Comercial"  alignment="right" cell-template="netoTemplate" />
+        <DxColumn data-field="montoNetoAPagar" caption="Neto Comercial" alignment="right" cell-template="netoTemplate" />
         <DxColumn caption="Archivo" alignment="center" cell-template="archivoTemplate" />
-        <DxColumn data-field="estadoCobranza" caption="Estado"  alignment="center" cell-template="estadoTemplate" />
+        <DxColumn data-field="estadoCobranza" caption="Estado" alignment="center" cell-template="estadoTemplate" />
         <DxColumn caption="Acciones" alignment="center" cell-template="accionesTemplate" />
 
         <!-- Template: Factura con Período arriba -->
@@ -262,24 +261,16 @@
       </DxDataGrid>
     </div>
 
-    <!-- POPUP REUTILIZADO: AdminSubirFacturaModal -->
-    <AdminSubirFacturaModal
-      v-model:visible="mostrarModalSubirFactura"
-      :empresas="listaEmpresasModal"
-      :calculos-clientes="calculosClientes"
-      :is-guardando="isGuardandoFactura"
-      @guardar="onGuardarFacturaModal"
-    />
-
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { DxDataGrid, DxColumn, DxSearchPanel, DxPaging, DxPager } from 'devextreme-vue/data-grid';
 import { DxButton } from 'devextreme-vue/button';
 import { confirm } from 'devextreme/ui/dialog';
 import AdminSubirFacturaModal from './AdminSubirFacturaModal.vue';
+import dialogService from '@/services/dialogService';
 
 const props = defineProps({
   calculosClientes: {
@@ -298,10 +289,6 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
-  isGuardandoFactura: {
-    type: Boolean,
-    default: false
-  },
   filtroMes: {
     type: Number,
     required: true
@@ -317,13 +304,11 @@ const emit = defineEmits([
   'update:filtroAnio',
   'cambiar-periodo',
   'emitir-cobranza',
-  'subir-factura',
+  'factura-subida',
   'notificar-factura',
   'marcar-pagado',
   'volver'
 ]);
-
-const mostrarModalSubirFactura = ref(false);
 
 const mesesNombres = [
   '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -377,11 +362,20 @@ const calculoEmpresa = computed(() => {
   return props.calculosClientes.find(c => c.clienteID === props.empresaSeleccionada.clienteID) || null;
 });
 
-const onGuardarFacturaModal = (data) => {
-  emit('subir-factura', {
-    ...data,
-    cerrarModal: () => {
-      mostrarModalSubirFactura.value = false;
+const abrirModalSubirFactura = () => {
+  dialogService.open(AdminSubirFacturaModal, {
+    empresas: listaEmpresasModal.value,
+    calculosClientes: props.calculosClientes,
+    empresaPreseleccionada: props.empresaSeleccionada
+  }, {
+    title: 'Subir Factura de Servicio Electrónica',
+    width: '780px',
+    height: 'auto',
+    maxHeight: '92vh',
+    onClose: (dialogResult) => {
+      if (dialogResult && !dialogResult.canceled) {
+        emit('factura-subida');
+      }
     }
   });
 };
@@ -415,4 +409,3 @@ const onConfirmarPagado = async (factura) => {
   }
 };
 </script>
-

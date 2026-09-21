@@ -26,7 +26,6 @@ const tabPrincipal = ref('empresas');
 // Vista de detalle contextual para una empresa seleccionada (null = ver lista de empresas)
 const empresaSeleccionadaManuales = ref(null);
 const empresaSeleccionadaFacturacion = ref(null);
-const empresaSeleccionadaEditar = ref(null);
 
 // Período de Consulta para Conteo y Facturación
 const anioActual = new Date().getFullYear();
@@ -34,26 +33,16 @@ const mesActual = new Date().getMonth() + 1;
 const filtroAnio = ref(anioActual);
 const filtroMes = ref(mesActual);
 
-// Estados de Carga y Feedback
+// Estados de Carga
 const isCalculando = ref(false);
-const isGuardandoEmpresa = ref(false);
-const isGuardandoManual = ref(false);
-const isGuardandoFactura = ref(false);
 const isCargandoNotificaciones = ref(false);
-const mensajeFeedback = ref('');
-const tipoFeedback = ref('success');
 
-// Datos del Sistema (cargados dinámicamente desde el backend)
+// Datos del Sistema
 const empresas = ref([]);
 const calculosClientes = ref([]);
 const facturas = ref([]);
 const manualesSubidos = ref([]);
 const notificaciones = ref([]);
-
-// Modales
-const mostrarModalEmpresa = ref(false);
-const mostrarModalSubirManualFijo = ref(false);
-const manualFijoSeleccionado = ref(null);
 
 // Manejo de Sesión de SuperAdmin
 const onLoginExitoso = (sesion) => {
@@ -81,18 +70,43 @@ const onCerrarSesion = () => {
   calculosClientes.value = [];
   facturas.value = [];
   manualesSubidos.value = [];
+  notificaciones.value = [];
   showSuccess('Sesión administrativa cerrada.');
 };
 
-// Acciones de Navegación y Apertura de Modales
+// Acciones de Navegación y Apertura de Modales con dialogService
 const abrirModalNuevaEmpresa = () => {
-  empresaSeleccionadaEditar.value = null;
-  mostrarModalEmpresa.value = true;
+  dialogService.open(AdminEmpresaModal, {
+    empresaAEditar: null
+  }, {
+    title: 'Agregar Nueva Institución Educativa',
+    width: '780px',
+    height: 'auto',
+    maxHeight: '90vh',
+    onClose: (dialogResult) => {
+      if (dialogResult && !dialogResult.canceled) {
+        cargarEmpresas();
+        sincronizarAlumnos();
+      }
+    }
+  });
 };
 
 const abrirModalEditarEmpresa = (empresa) => {
-  empresaSeleccionadaEditar.value = empresa;
-  mostrarModalEmpresa.value = true;
+  dialogService.open(AdminEmpresaModal, {
+    empresaAEditar: empresa
+  }, {
+    title: `Editar Institución: ${empresa.nombreComercial}`,
+    width: '780px',
+    height: 'auto',
+    maxHeight: '90vh',
+    onClose: (dialogResult) => {
+      if (dialogResult && !dialogResult.canceled) {
+        cargarEmpresas();
+        sincronizarAlumnos();
+      }
+    }
+  });
 };
 
 const abrirPanelManualesEmpresa = (empresa) => {
@@ -111,8 +125,26 @@ const volverAListaEmpresas = () => {
 };
 
 const abrirModalSubirManual = (manualFijo) => {
-  manualFijoSeleccionado.value = manualFijo;
-  mostrarModalSubirManualFijo.value = true;
+  const yaSubido = manualesSubidos.value.find(
+    m => m.clienteIDExclusivo === empresaSeleccionadaManuales.value?.clienteID &&
+    (m.codigoFijo === manualFijo?.codigoFijo || m.titulo.toLowerCase().includes(manualFijo?.codigoFijo?.toLowerCase() || ''))
+  );
+
+  dialogService.open(AdminSubirManualModal, {
+    empresa: empresaSeleccionadaManuales.value,
+    manualFijo: manualFijo,
+    manualSubido: yaSubido
+  }, {
+    title: `Subir Manual MINEDU - ${manualFijo?.tituloBase || ''}`,
+    width: '700px',
+    height: 'auto',
+    maxHeight: '85vh',
+    onClose: (dialogResult) => {
+      if (dialogResult && !dialogResult.canceled) {
+        cargarManuales();
+      }
+    }
+  });
 };
 
 // Cargar Datos Dinámicos desde el Backend utilizando apiClient
@@ -162,57 +194,6 @@ const sincronizarAlumnos = async () => {
     showError(getErrorMessage(error, 'Error al calcular alumnos'));
   } finally {
     isCalculando.value = false;
-  }
-};
-
-// Handlers de Guardado
-const onGuardarEmpresa = async (nuevaEmpresa) => {
-  isGuardandoEmpresa.value = true;
-  try {
-    await apiClient.post('/portal-cliente/admin/clientes/guardar', nuevaEmpresa);
-    mostrarModalEmpresa.value = false;
-    const mensaje = nuevaEmpresa.clienteID > 0
-      ? `¡Institución "${nuevaEmpresa.nombreComercial}" actualizada con éxito!`
-      : `¡Institución "${nuevaEmpresa.nombreComercial}" registrada con éxito!`;
-    showSuccess(mensaje);
-    await cargarEmpresas();
-    await sincronizarAlumnos();
-  } catch (error) {
-    showError(getErrorMessage(error, 'Error al guardar la institución'));
-  } finally {
-    isGuardandoEmpresa.value = false;
-  }
-};
-
-const onConfirmarGuardadoManual = async ({ payload, manualFijo, empresa, formValues }) => {
-  isGuardandoManual.value = true;
-  try {
-    await apiClient.post('/portal-cliente/admin/documentos/guardar', payload);
-    mostrarModalSubirManualFijo.value = false;
-    showSuccess(`¡${formValues.tituloPersonalizado} guardado con éxito para ${empresa.nombreComercial}!`);
-    await cargarManuales();
-  } catch (error) {
-    showError(getErrorMessage(error, 'Error al registrar el documento'));
-  } finally {
-    isGuardandoManual.value = false;
-  }
-};
-
-const onSubirFactura = async ({ formData, cerrarModal }) => {
-  isGuardandoFactura.value = true;
-  try {
-    await apiClient.post('/portal-cliente/admin/facturas/subir', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    showSuccess('¡Factura subida y registrada exitosamente!');
-    if (cerrarModal) cerrarModal();
-    await cargarFacturas();
-  } catch (error) {
-    showError(getErrorMessage(error, 'Error al subir y registrar la factura'));
-  } finally {
-    isGuardandoFactura.value = false;
   }
 };
 
@@ -378,21 +359,6 @@ onMounted(() => {
       </button>
     </div>
 
-    <!-- ALERTA DE FEEDBACK -->
-    <div
-      v-if="mensajeFeedback"
-      :class="tipoFeedback === 'success' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 text-emerald-800 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-950/40 border-red-200 text-red-800 dark:text-red-300'"
-      class="p-4 rounded-2xl border text-xs font-semibold flex items-center justify-between animate-in fade-in"
-    >
-      <div class="flex items-center gap-2">
-        <i :class="tipoFeedback === 'success' ? 'fa-light fa-circle-check text-base' : 'fa-light fa-triangle-exclamation text-base'"></i>
-        <span>{{ mensajeFeedback }}</span>
-      </div>
-      <button type="button" @click="mensajeFeedback = ''" class="text-slate-400 hover:text-slate-600">
-        <i class="fa-light fa-xmark"></i>
-      </button>
-    </div>
-
     <!-- VISTA TAB 1: EMPRESAS, MANUALES Y FACTURACIÓN -->
     <div v-if="tabPrincipal === 'empresas'">
       <!-- CASO A: TABLA DE DIRECTORIO DE EMPRESAS -->
@@ -411,7 +377,7 @@ onMounted(() => {
       <AdminManualesEmpresaPanel
         v-else-if="empresaSeleccionadaManuales"
         :empresa="empresaSeleccionadaManuales"
-        :manual-fijos="MANUALES_FIJOS_MINEDU"
+        :manuales-fijos="MANUALES_FIJOS_MINEDU"
         :manuales-subidos="manualesSubidos"
         @volver="volverAListaEmpresas"
         @subir-manual="abrirModalSubirManual"
@@ -424,11 +390,10 @@ onMounted(() => {
         :empresa-seleccionada="empresaSeleccionadaFacturacion"
         :empresas="empresas"
         :facturas="facturas"
-        :is-guardando-factura="isGuardandoFactura"
         v-model:filtro-mes="filtroMes"
         v-model:filtro-anio="filtroAnio"
         @cambiar-periodo="sincronizarAlumnos"
-        @subir-factura="onSubirFactura"
+        @factura-subida="cargarFacturas"
         @notificar-factura="onNotificarFactura"
         @marcar-pagado="onMarcarPagadoFactura"
         @volver="volverAListaEmpresas"
@@ -446,24 +411,6 @@ onMounted(() => {
         @aplicar-notificacion="abrirModalAplicarNotificacion"
       />
     </div>
-
-    <!-- MODAL 1: REGISTRAR / EDITAR EMPRESA -->
-    <AdminEmpresaModal
-      v-model:visible="mostrarModalEmpresa"
-      :empresa-a-editar="empresaSeleccionadaEditar"
-      :is-guardando="isGuardandoEmpresa"
-      @guardar="onGuardarEmpresa"
-    />
-
-    <!-- MODAL 2: SUBIR O REEMPLAZAR MANUAL MINEDU CON LOGO -->
-    <AdminSubirManualModal
-      v-model:visible="mostrarModalSubirManualFijo"
-      :empresa="empresaSeleccionadaManuales"
-      :manual-fijo="manualFijoSeleccionado"
-      :manual-subido="manualesSubidos.find(m => m.clienteIDExclusivo === empresaSeleccionadaManuales?.clienteID && (m.codigoFijo === manualFijoSeleccionado?.codigoFijo || m.titulo.toLowerCase().includes(manualFijoSeleccionado?.codigoFijo?.toLowerCase() || '')))"
-      :is-guardando="isGuardandoManual"
-      @guardar="onConfirmarGuardadoManual"
-    />
 
   </div>
 </template>
