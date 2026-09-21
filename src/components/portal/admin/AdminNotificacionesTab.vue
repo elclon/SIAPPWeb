@@ -17,13 +17,11 @@ defineProps({
 
 const emit = defineEmits(['nueva-notificacion', 'editar-notificacion', 'eliminar-notificacion', 'aplicar-notificacion']);
 
-const getActions = (notificacion) => {
-  return [
-    { id: 'aplicar', text: 'Aplicar a Empresas', icon: 'check' },
-    { id: 'editar', text: 'Editar Notificación', icon: 'edit' },
-    { id: 'eliminar', text: 'Eliminar', icon: 'trash' }
-  ];
-};
+const actionItems = [
+  { id: 'aplicar', text: 'Aplicar a Empresas', icon: 'check' },
+  { id: 'editar', text: 'Editar Notificación', icon: 'edit' },
+  { id: 'eliminar', text: 'Eliminar', icon: 'trash' }
+];
 
 const onActionItemClick = async (e, notificacion) => {
   switch (e.itemData.id) {
@@ -219,8 +217,11 @@ const formatearFecha = (fecha) => {
               text="Opciones"
               icon="more"
               styling-mode="outlined"
-              :items="getActions(data.data)"
-              :drop-down-options="{ width: 180 }"
+              :items="actionItems"
+              :display-expr="'text'"
+              :key-expr="'id'"
+              :split-button="false"
+              :drop-down-options="{ width: 190, container: 'body' }"
               @item-click="(e) => onActionItemClick(e, data.data)"
             />
           </div>
