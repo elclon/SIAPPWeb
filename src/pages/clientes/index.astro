@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import PortalCliente from '../../components/portal/PortalCliente.vue';
+import 'devextreme/dist/css/dx.fluent.saas.light.css';
 ---
 
 <Layout 
@@ -33,3 +34,7 @@ import PortalCliente from '../../components/portal/PortalCliente.vue';
     </div>
   </div>
 </Layout>
+
+<script>
+  import '../../components/portal/admin/devextreme-init';
+</script>

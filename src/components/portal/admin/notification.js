@@ -1,3 +1,4 @@
+import './devextreme-init';
 import notify from 'devextreme/ui/notify';
 
 /**

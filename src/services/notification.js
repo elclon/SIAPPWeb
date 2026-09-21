@@ -1,3 +1,4 @@
+import '@/components/portal/admin/devextreme-init';
 import notify from 'devextreme/ui/notify';
 
 /**

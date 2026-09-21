@@ -1,7 +1,12 @@
 <script setup>
+import { ref } from 'vue';
 import { DxDataGrid, DxColumn, DxSearchPanel, DxPaging, DxPager } from 'devextreme-vue/data-grid';
 import { DxButton } from 'devextreme-vue/button';
 import { DxDropDownButton } from 'devextreme-vue/drop-down-button';
+import { confirm } from 'devextreme/ui/dialog';
+import apiClient from '@/api/axiosConfig';
+import { showSuccess, showError } from '@/services/notification';
+import { getErrorMessage } from '@/services/errorHandler';
 
 defineProps({
   empresas: {
@@ -19,13 +24,38 @@ defineProps({
 });
 
 const emit = defineEmits(['nueva-empresa', 'ver-manuales', 'ver-facturacion', 'editar-empresa']);
+const isProcesandoReseteo = ref(false);
 
 const getActions = (empresa) => {
   return [
     { id: 'manuales', text: 'Manuales', icon: 'folder' },
     { id: 'facturacion', text: 'Facturación', icon: 'money' },
+    { id: 'resetearPassword', text: 'Resetear contraseña', icon: 'key' },
     { id: 'editar', text: 'Editar datos', icon: 'edit' }
   ];
+};
+
+const handleResetearPassword = async (empresa) => {
+  const correoDestino = empresa.emailContacto || 'el correo registrado de la institución';
+  const confirmado = await confirm(
+    `¿Desea generar y enviar un enlace seguro de restablecimiento de contraseña para "${empresa.nombreComercial}" a ${correoDestino}?`,
+    'Resetear Contraseña'
+  );
+
+  if (!confirmado) return;
+
+  isProcesandoReseteo.value = true;
+  try {
+    await apiClient.post('/portal-cliente/admin/clientes/resetear-password', {
+      clienteID: empresa.clienteID,
+      emailDestino: empresa.emailContacto
+    });
+    showSuccess(`Se ha enviado el enlace de restablecimiento al correo: ${correoDestino}`);
+  } catch (error) {
+    showError(getErrorMessage(error, 'No se pudo procesar el reseteo de la contraseña.'));
+  } finally {
+    isProcesandoReseteo.value = false;
+  }
 };
 
 const onActionItemClick = (e, empresa) => {
@@ -35,6 +65,9 @@ const onActionItemClick = (e, empresa) => {
       break;
     case 'facturacion':
       emit('ver-facturacion', empresa);
+      break;
+    case 'resetearPassword':
+      handleResetearPassword(empresa);
       break;
     case 'editar':
       emit('editar-empresa', empresa);

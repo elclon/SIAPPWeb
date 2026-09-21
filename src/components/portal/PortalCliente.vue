@@ -1,7 +1,9 @@
 <script setup>
+import './admin/devextreme-init';
 import { ref, computed, onMounted } from 'vue';
 import apiClient from '@/api/axiosConfig';
 import { getErrorMessage } from '@/services/errorHandler';
+import { showSuccess, showError } from '@/services/notification';
 
 // Estado de Autenticación
 const sesionCliente = ref(null);
@@ -12,6 +14,141 @@ const errorMensaje = ref('');
 const formLogin = ref({
   usuarioOCorreo: '',
   password: ''
+});
+
+// Flujo de Recuperación y Reseteo de Contraseña
+const mostrarModalRecuperar = ref(false);
+const isEnviandoRecuperacion = ref(false);
+const mensajeRecuperarExito = ref('');
+const errorRecuperar = ref('');
+const formRecuperar = ref({
+  usuarioOCorreo: ''
+});
+
+// Modal para Crear Nueva Contraseña Segura (con Token)
+const mostrarModalNuevaPassword = ref(false);
+const tokenRecuperacion = ref('');
+const datosToken = ref({
+  nombreCompleto: '',
+  correoLogin: '',
+  institucion: ''
+});
+const formNuevaPassword = ref({
+  password: '',
+  confirmPassword: ''
+});
+const mostrarPassword = ref(false);
+const isGuardandoPassword = ref(false);
+const errorNuevaPassword = ref('');
+const mensajeNuevaPasswordExito = ref('');
+
+// Reglas y Checklist de Contraseña Segura
+const tieneMinimo8 = computed(() => formNuevaPassword.value.password.length >= 8);
+const tieneMayuscula = computed(() => /[A-Z]/.test(formNuevaPassword.value.password));
+const tieneNumero = computed(() => /[0-9]/.test(formNuevaPassword.value.password));
+const coincidenPasswords = computed(() => 
+  formNuevaPassword.value.password.length > 0 && 
+  formNuevaPassword.value.password === formNuevaPassword.value.confirmPassword
+);
+const esPasswordValida = computed(() => 
+  tieneMinimo8.value && tieneMayuscula.value && tieneNumero.value && coincidenPasswords.value
+);
+
+const abrirModalRecuperar = () => {
+  formRecuperar.value.usuarioOCorreo = formLogin.value.usuarioOCorreo || '';
+  mensajeRecuperarExito.value = '';
+  errorRecuperar.value = '';
+  mostrarModalRecuperar.value = true;
+};
+
+const enviarSolicitudRecuperacion = async () => {
+  errorRecuperar.value = '';
+  mensajeRecuperarExito.value = '';
+
+  if (!formRecuperar.value.usuarioOCorreo.trim()) {
+    errorRecuperar.value = 'Por favor ingrese el RUC o correo de su institución.';
+    return;
+  }
+
+  isEnviandoRecuperacion.value = true;
+  try {
+    await apiClient.post('/portal-cliente/auth/solicitar-recuperacion', {
+      usuarioOCorreo: formRecuperar.value.usuarioOCorreo.trim()
+    });
+
+    mensajeRecuperarExito.value = 'Hemos enviado un enlace seguro a su correo institucional registrado. Por favor revise su bandeja de entrada (y la carpeta de spam o correo no deseado).';
+  } catch (err) {
+    errorRecuperar.value = getErrorMessage(err, 'No se pudo procesar la solicitud de recuperación.');
+  } finally {
+    isEnviandoRecuperacion.value = false;
+  }
+};
+
+const validarTokenUrl = async (token) => {
+  try {
+    const res = await apiClient.get('/portal-cliente/auth/validar-token', { params: { token } });
+    if (res.data && res.data.esValido) {
+      datosToken.value = res.data;
+      tokenRecuperacion.value = token;
+      formNuevaPassword.value.password = '';
+      formNuevaPassword.value.confirmPassword = '';
+      errorNuevaPassword.value = '';
+      mensajeNuevaPasswordExito.value = '';
+      mostrarModalNuevaPassword.value = true;
+    } else {
+      errorMensaje.value = 'El enlace de recuperación ha expirado o no es válido. Por favor, solicita uno nuevo.';
+      limpiarTokenUrl();
+    }
+  } catch (err) {
+    errorMensaje.value = getErrorMessage(err, 'Enlace de recuperación inválido.');
+    limpiarTokenUrl();
+  }
+};
+
+const guardarNuevaPassword = async () => {
+  errorNuevaPassword.value = '';
+  mensajeNuevaPasswordExito.value = '';
+
+  if (!esPasswordValida.value) {
+    errorNuevaPassword.value = 'La contraseña no cumple con todos los requisitos de seguridad o las contraseñas no coinciden.';
+    return;
+  }
+
+  isGuardandoPassword.value = true;
+  try {
+    await apiClient.post('/portal-cliente/auth/establecer-password', {
+      token: tokenRecuperacion.value,
+      nuevaPassword: formNuevaPassword.value.password,
+      confirmarPassword: formNuevaPassword.value.confirmPassword
+    });
+
+    mensajeNuevaPasswordExito.value = '¡Contraseña actualizada exitosamente! Ahora puede iniciar sesión con su nueva clave.';
+    formLogin.value.usuarioOCorreo = datosToken.value.correoLogin || '';
+    formLogin.value.password = '';
+    
+    limpiarTokenUrl();
+    showSuccess('Contraseña actualizada con éxito');
+  } catch (err) {
+    errorNuevaPassword.value = getErrorMessage(err, 'No se pudo actualizar la contraseña.');
+  } finally {
+    isGuardandoPassword.value = false;
+  }
+};
+
+const limpiarTokenUrl = () => {
+  if (typeof window !== 'undefined' && window.history) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+};
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      validarTokenUrl(token);
+    }
+  }
 });
 
 // Pestaña Activa ('facturacion' | 'licenciamiento')
@@ -244,6 +381,16 @@ const copiarTexto = (texto, nombreCampo) => {
               class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
             />
           </div>
+        </div>
+
+        <div class="flex items-center justify-end -mt-1">
+          <button
+            type="button"
+            @click="abrirModalRecuperar"
+            class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors cursor-pointer"
+          >
+            ¿Olvidaste tu contraseña? Recuperar contraseña
+          </button>
         </div>
 
         <button
@@ -821,6 +968,232 @@ const copiarTexto = (texto, nombreCampo) => {
             </button>
           </div>
 
+        </form>
+      </div>
+    </div>
+
+    <!-- ================================================================================= -->
+    <!-- MODAL 1: RECUPERAR CONTRASEÑA (SOLICITAR ENLACE AL CORREO)                        -->
+    <!-- ================================================================================= -->
+    <div
+      v-if="mostrarModalRecuperar"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+    >
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-light fa-key-skeleton"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-900 dark:text-white text-sm">Recuperar Contraseña</h3>
+              <p class="text-[11px] text-slate-400">Te enviaremos un enlace a tu correo institucional</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            @click="mostrarModalRecuperar = false"
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div v-if="mensajeRecuperarExito" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs space-y-3">
+          <div class="flex items-center gap-2 font-bold">
+            <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-sm"></i>
+            <span>¡Enlace Enviado con Éxito!</span>
+          </div>
+          <p class="leading-relaxed">{{ mensajeRecuperarExito }}</p>
+          <div class="pt-2 text-right">
+            <button
+              type="button"
+              @click="mostrarModalRecuperar = false"
+              class="px-4 py-1.5 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 transition-all cursor-pointer"
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+
+        <form v-else @submit.prevent="enviarSolicitudRecuperacion" class="space-y-4">
+          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            Ingresa el <strong>RUC de tu institución</strong> o tu <strong>correo electrónico registrado</strong> en el sistema. Generaremos un enlace de recuperación seguro para tu cuenta.
+          </p>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              RUC o Correo Registrado:
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fa-light fa-envelope text-sm"></i>
+              </div>
+              <input
+                v-model="formRecuperar.usuarioOCorreo"
+                type="text"
+                required
+                placeholder="Ej: 20549281921 o director@instituto.edu.pe"
+                class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div v-if="errorRecuperar" class="p-3 rounded-xl bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 text-xs border border-rose-200 dark:border-rose-800 flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>{{ errorRecuperar }}</span>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <button
+              type="button"
+              @click="mostrarModalRecuperar = false"
+              class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              :disabled="isEnviandoRecuperacion"
+              class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 flex items-center gap-2 disabled:opacity-60 transition-all cursor-pointer"
+            >
+              <i v-if="isEnviandoRecuperacion" class="fa-solid fa-spinner fa-spin"></i>
+              <i v-else class="fa-light fa-paper-plane"></i>
+              <span>{{ isEnviandoRecuperacion ? 'Enviando...' : 'Enviar Enlace de Recuperación' }}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================================================================================= -->
+    <!-- MODAL 2: ESTABLECER NUEVA CONTRASEÑA SEGURA (ACTIVACIÓN CON TOKEN)                -->
+    <!-- ================================================================================= -->
+    <div
+      v-if="mostrarModalNuevaPassword"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fade-in"
+    >
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm font-bold">
+              <i class="fa-light fa-shield-check"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-900 dark:text-white text-sm">Nueva Contraseña Segura</h3>
+              <p class="text-[11px] text-slate-400 truncate max-w-[240px]">{{ datosToken.institucion || 'Institución Educativa' }}</p>
+            </div>
+          </div>
+          <button
+            v-if="!mensajeNuevaPasswordExito"
+            type="button"
+            @click="mostrarModalNuevaPassword = false"
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div v-if="mensajeNuevaPasswordExito" class="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs space-y-3 text-center">
+          <div class="w-12 h-12 mx-auto rounded-2xl bg-emerald-100 dark:bg-emerald-800/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-check"></i>
+          </div>
+          <h4 class="font-bold text-sm">¡Contraseña Actualizada!</h4>
+          <p class="leading-relaxed">{{ mensajeNuevaPasswordExito }}</p>
+          <button
+            type="button"
+            @click="mostrarModalNuevaPassword = false"
+            class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+          >
+            Ingresar con mi Nueva Contraseña
+          </button>
+        </div>
+
+        <form v-else @submit.prevent="guardarNuevaPassword" class="space-y-4">
+          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-xs">
+            <span class="block text-slate-500 dark:text-slate-400 text-[10px]">Restableciendo acceso para:</span>
+            <span class="font-bold text-slate-800 dark:text-slate-200 text-sm block">{{ datosToken.nombreCompleto }}</span>
+            <span class="text-[11px] text-indigo-600 dark:text-indigo-400 font-mono truncate block">{{ datosToken.correoLogin }}</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              Nueva Contraseña:
+            </label>
+            <div class="relative">
+              <input
+                v-model="formNuevaPassword.password"
+                :type="mostrarPassword ? 'text' : 'password'"
+                required
+                placeholder="Ingresa tu nueva contraseña"
+                class="w-full pl-3 pr-10 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+              <button
+                type="button"
+                @click="mostrarPassword = !mostrarPassword"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <i :class="mostrarPassword ? 'fa-light fa-eye-slash' : 'fa-light fa-eye'" class="text-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              Confirmar Nueva Contraseña:
+            </label>
+            <div class="relative">
+              <input
+                v-model="formNuevaPassword.confirmPassword"
+                :type="mostrarPassword ? 'text' : 'password'"
+                required
+                placeholder="Repite tu nueva contraseña"
+                class="w-full pl-3 pr-10 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <!-- Checklist de Requisitos de Contraseña Segura -->
+          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-1.5 text-[11px]">
+            <span class="block font-bold text-slate-600 dark:text-slate-400 mb-1">Requisitos de seguridad:</span>
+            
+            <div class="flex items-center gap-2" :class="tieneMinimo8 ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-slate-400'">
+              <i :class="tieneMinimo8 ? 'fa-solid fa-circle-check text-emerald-500' : 'fa-regular fa-circle'"></i>
+              <span>Mínimo 8 caracteres</span>
+            </div>
+
+            <div class="flex items-center gap-2" :class="tieneMayuscula ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-slate-400'">
+              <i :class="tieneMayuscula ? 'fa-solid fa-circle-check text-emerald-500' : 'fa-regular fa-circle'"></i>
+              <span>Al menos una letra mayúscula</span>
+            </div>
+
+            <div class="flex items-center gap-2" :class="tieneNumero ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-slate-400'">
+              <i :class="tieneNumero ? 'fa-solid fa-circle-check text-emerald-500' : 'fa-regular fa-circle'"></i>
+              <span>Al menos un número</span>
+            </div>
+
+            <div class="flex items-center gap-2" :class="coincidenPasswords ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-slate-400'">
+              <i :class="coincidenPasswords ? 'fa-solid fa-circle-check text-emerald-500' : 'fa-regular fa-circle'"></i>
+              <span>Las contraseñas coinciden</span>
+            </div>
+          </div>
+
+          <div v-if="errorNuevaPassword" class="p-3 rounded-xl bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 text-xs border border-rose-200 dark:border-rose-800 flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>{{ errorNuevaPassword }}</span>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <button
+              type="submit"
+              :disabled="!esPasswordValida || isGuardandoPassword"
+              class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer"
+            >
+              <i v-if="isGuardandoPassword" class="fa-solid fa-spinner fa-spin"></i>
+              <i v-else class="fa-light fa-lock-check"></i>
+              <span>{{ isGuardandoPassword ? 'Guardando Contraseña...' : 'Guardar y Activar Nueva Contraseña' }}</span>
+            </button>
+          </div>
         </form>
       </div>
     </div>
