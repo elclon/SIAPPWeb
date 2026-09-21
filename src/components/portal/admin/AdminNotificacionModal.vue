@@ -17,9 +17,9 @@
             <DxLabel text="Título de la Notificación / Novedad" />
             <DxRequiredRule message="El título de la notificación es obligatorio" />
           </DxSimpleItem>
-    </DxGroupItem>
+        </DxGroupItem>
 
-      <DxGroupItem :col-count="2">
+        <DxGroupItem :col-count="2">
           <DxSimpleItem
             data-field="tipoNotificacion"
             editor-type="dxSelectBox"
@@ -147,6 +147,7 @@ import { DxButton } from 'devextreme-vue/button';
 import apiClient from '@/api/axiosConfig';
 import { showSuccess, showError } from '@/services/notification';
 import { getErrorMessage } from '@/services/errorHandler';
+import { formatFechaISO, parseFechaLocal } from '@/utils/helpers';
 
 const props = defineProps({
   notificacionAEditar: {
@@ -189,8 +190,8 @@ onMounted(() => {
       aplicaAdministrativos: props.notificacionAEditar.aplicaAdministrativos ?? true,
       aplicaPadres: props.notificacionAEditar.aplicaPadres ?? false,
       mostrarPopupInicio: props.notificacionAEditar.mostrarPopupInicio ?? true,
-      fechaPublicacion: props.notificacionAEditar.fechaPublicacion ? new Date(props.notificacionAEditar.fechaPublicacion) : new Date(),
-      fechaExpiracion: props.notificacionAEditar.fechaExpiracion ? new Date(props.notificacionAEditar.fechaExpiracion) : null,
+      fechaPublicacion: props.notificacionAEditar.fechaPublicacion ? parseFechaLocal(props.notificacionAEditar.fechaPublicacion) : new Date(),
+      fechaExpiracion: props.notificacionAEditar.fechaExpiracion ? parseFechaLocal(props.notificacionAEditar.fechaExpiracion) : null,
       activo: props.notificacionAEditar.activo ?? true
     });
   } else {
@@ -238,15 +239,25 @@ const versionOptions = {
   placeholder: 'Ej: v2.5.0 o 2026.09.21'
 };
 
+// Formato dd/MM/yyyy con dropDownOptions container body
 const fechaPublicacionOptions = {
-  displayFormat: 'yyyy-MM-dd',
-  type: 'date'
+  displayFormat: 'dd/MM/yyyy',
+  dateSerializationFormat: 'yyyy-MM-dd',
+  type: 'date',
+  placeholder: 'DD/MM/AAAA',
+  dropDownOptions: {
+    container: 'body'
+  }
 };
 
 const fechaExpiracionOptions = {
-  displayFormat: 'yyyy-MM-dd',
+  displayFormat: 'dd/MM/yyyy',
+  dateSerializationFormat: 'yyyy-MM-dd',
   type: 'date',
-  placeholder: 'Opcional (sin límite si está vacío)'
+  placeholder: 'Opcional (sin límite si está vacío)',
+  dropDownOptions: {
+    container: 'body'
+  }
 };
 
 const checkAlumnosOptions = { text: '🎓 Portal Alumnos' };
@@ -290,7 +301,12 @@ const handleSubmit = async () => {
 
   isGuardando.value = true;
   try {
-    const payload = { ...formNotificacion };
+    const payload = {
+      ...formNotificacion,
+      fechaPublicacion: formNotificacion.fechaPublicacion ? formatFechaISO(formNotificacion.fechaPublicacion) : formatFechaISO(new Date()),
+      fechaExpiracion: formNotificacion.fechaExpiracion ? formatFechaISO(formNotificacion.fechaExpiracion) : null
+    };
+
     const response = await apiClient.post('/portal-cliente/admin/notificaciones/guardar', payload);
     const mensaje = payload.notificacionID > 0
       ? `¡Notificación "${payload.titulo}" actualizada exitosamente!`

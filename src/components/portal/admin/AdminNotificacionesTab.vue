@@ -3,6 +3,7 @@ import { DxDataGrid, DxColumn, DxSearchPanel, DxPaging, DxPager } from 'devextre
 import { DxButton } from 'devextreme-vue/button';
 import { DxDropDownButton } from 'devextreme-vue/drop-down-button';
 import { confirm } from 'devextreme/ui/dialog';
+import { formatFechaCorta } from '@/utils/helpers';
 
 defineProps({
   notificaciones: {
@@ -43,16 +44,6 @@ const onActionItemClick = async (e, notificacion) => {
     }
   }
 };
-
-const formatearFecha = (fecha) => {
-  if (!fecha) return '-';
-  try {
-    const d = new Date(fecha);
-    return d.toLocaleDateString('es-PE', { year: 'numeric', month: 'short', day: '2-digit' });
-  } catch (e) {
-    return fecha;
-  }
-};
 </script>
 
 <template>
@@ -86,12 +77,12 @@ const formatearFecha = (fecha) => {
     </div>
 
     <!-- DATA GRID DEVEXTREME DE NOTIFICACIONES -->
-    <div class="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+    
       <DxDataGrid
         :data-source="notificaciones"
-        :show-borders="false"
-        :hover-state-enabled="true"
-        :row-alternation-enabled="true"
+        :show-borders="true"
+        :hover-state-enabled="false"
+        :row-alternation-enabled="false"
         key-expr="notificacionID"
       >
         <DxSearchPanel :visible="true" placeholder="Buscar por título, versión o tipo..." />
@@ -107,7 +98,7 @@ const formatearFecha = (fecha) => {
         <DxColumn data-field="totalEmpresasAplicadas" caption="Empresas" :width="120" alignment="center" cell-template="empresasTemplate" />
         <DxColumn data-field="fechaPublicacion" caption="Publicación" :width="110" alignment="center" cell-template="fechaTemplate" />
         <DxColumn data-field="activo" caption="Estado" :width="90" alignment="center" cell-template="estadoTemplate" />
-        <DxColumn caption="Acciones" :width="160" alignment="center" cell-template="accionesTemplate" />
+        <DxColumn caption="" :width="50" alignment="center" cell-template="accionesTemplate" />
 
         <!-- TEMPLATE: TIPO DE NOTIFICACIÓN -->
         <template #tipoTemplate="{ data }">
@@ -189,8 +180,8 @@ const formatearFecha = (fecha) => {
 
         <!-- TEMPLATE: FECHA -->
         <template #fechaTemplate="{ data }">
-          <span class="text-xs text-slate-600 dark:text-slate-400">
-            {{ formatearFecha(data.value) }}
+          <span class="text-xs text-slate-600 dark:text-slate-400 font-mono">
+            {{ formatFechaCorta(data.value) || '-' }}
           </span>
         </template>
 
@@ -206,21 +197,14 @@ const formatearFecha = (fecha) => {
         <!-- TEMPLATE: ACCIONES -->
         <template #accionesTemplate="{ data }">
           <div class="flex items-center justify-center gap-1.5">
-            <DxButton
-              icon="check"
-              hint="Aplicar a Empresas"
-              type="default"
-              styling-mode="outlined"
-              @click="$emit('aplicar-notificacion', data.data)"
-            />
             <DxDropDownButton
-              text="Opciones"
-              icon="more"
-              styling-mode="outlined"
+              icon="fa-solid fa-ellipsis-vertical" 
+              styling-mode="text"
               :items="actionItems"
               :display-expr="'text'"
               :key-expr="'id'"
               :split-button="false"
+              :show-arrow-icon="false"
               :drop-down-options="{ width: 190, container: 'body' }"
               @item-click="(e) => onActionItemClick(e, data.data)"
             />
@@ -228,7 +212,7 @@ const formatearFecha = (fecha) => {
         </template>
 
       </DxDataGrid>
-    </div>
+    
 
   </div>
 </template>
