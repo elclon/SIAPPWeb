@@ -211,6 +211,9 @@ const tipoCobroOptions = computed(() => ({
   ],
   displayExpr: 'text',
   valueExpr: 'id',
+  dropDownOptions: {
+    container: 'body'
+  },
   onValueChanged: (e) => {
     formEmpresa.value.tipoCobro = e.value;
   }

@@ -416,6 +416,9 @@ const clienteOptions = computed(() => ({
   valueExpr: 'clienteID',
   placeholder: 'Seleccione una institución cliente...',
   searchEnabled: true,
+  dropDownOptions: {
+    container: 'body'
+  },
   onValueChanged: (e) => {
     formFactura.value.clienteID = e.value;
     const emp = props.empresas.find(x => x.clienteID === e.value);
@@ -444,12 +447,18 @@ const mesOptions = computed(() => ({
   dataSource: mesesDataSource,
   displayExpr: 'nombre',
   valueExpr: 'id',
-  placeholder: 'Mes'
+  placeholder: 'Mes',
+  dropDownOptions: {
+    container: 'body'
+  }
 }));
 
 const anioOptions = computed(() => ({
   dataSource: [2025, 2026, 2027],
-  placeholder: 'Año'
+  placeholder: 'Año',
+  dropDownOptions: {
+    container: 'body'
+  }
 }));
 
 const serieOptions = computed(() => ({

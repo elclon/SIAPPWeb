@@ -1,81 +1,3 @@
-<script setup>
-import { ref } from 'vue';
-import { DxDataGrid, DxColumn, DxSearchPanel, DxPaging, DxPager } from 'devextreme-vue/data-grid';
-import { DxButton } from 'devextreme-vue/button';
-import { DxDropDownButton } from 'devextreme-vue/drop-down-button';
-import { confirm } from 'devextreme/ui/dialog';
-import apiClient from '@/api/axiosConfig';
-import { showSuccess, showError } from '@/services/notification';
-import { getErrorMessage } from '@/services/errorHandler';
-
-defineProps({
-  empresas: {
-    type: Array,
-    required: true
-  },
-  manualesSubidos: {
-    type: Array,
-    required: true
-  },
-  totalManualesFijos: {
-    type: Number,
-    default: 7
-  }
-});
-
-const emit = defineEmits(['nueva-empresa', 'ver-manuales', 'ver-facturacion', 'editar-empresa']);
-const isProcesandoReseteo = ref(false);
-
-const getActions = (empresa) => {
-  return [
-    { id: 'manuales', text: 'Manuales', icon: 'folder' },
-    { id: 'facturacion', text: 'Facturación', icon: 'money' },
-    { id: 'resetearPassword', text: 'Resetear contraseña', icon: 'key' },
-    { id: 'editar', text: 'Editar datos', icon: 'edit' }
-  ];
-};
-
-const handleResetearPassword = async (empresa) => {
-  const correoDestino = empresa.emailContacto || 'el correo registrado de la institución';
-  const confirmado = await confirm(
-    `¿Desea generar y enviar un enlace seguro de restablecimiento de contraseña para "${empresa.nombreComercial}" a ${correoDestino}?`,
-    'Resetear Contraseña'
-  );
-
-  if (!confirmado) return;
-
-  isProcesandoReseteo.value = true;
-  try {
-    await apiClient.post('/portal-cliente/admin/clientes/resetear-password', {
-      clienteID: empresa.clienteID,
-      emailDestino: empresa.emailContacto
-    });
-    showSuccess(`Se ha enviado el enlace de restablecimiento al correo: ${correoDestino}`);
-  } catch (error) {
-    showError(getErrorMessage(error, 'No se pudo procesar el reseteo de la contraseña.'));
-  } finally {
-    isProcesandoReseteo.value = false;
-  }
-};
-
-const onActionItemClick = (e, empresa) => {
-  switch (e.itemData.id) {
-    case 'manuales':
-      emit('ver-manuales', empresa);
-      break;
-    case 'facturacion':
-      emit('ver-facturacion', empresa);
-      break;
-    case 'resetearPassword':
-      handleResetearPassword(empresa);
-      break;
-    case 'editar':
-      emit('editar-empresa', empresa);
-      break;
-  }
-};
-</script>
-
 <template>
   <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
@@ -101,7 +23,7 @@ const onActionItemClick = (e, empresa) => {
     <DxDataGrid
       :data-source="empresas"
       :show-borders="true"
-      :row-alternation-enabled="true"
+      :row-alternation-enabled="false"
       :hover-state-enabled="true"
       key-expr="clienteID"
       class="overflow-hidden"
@@ -181,3 +103,83 @@ const onActionItemClick = (e, empresa) => {
     </DxDataGrid>
   </div>
 </template>
+
+<script setup>
+import { ref } from 'vue';
+import { DxDataGrid, DxColumn, DxSearchPanel, DxPaging, DxPager } from 'devextreme-vue/data-grid';
+import { DxButton } from 'devextreme-vue/button';
+import { DxDropDownButton } from 'devextreme-vue/drop-down-button';
+import { confirm } from 'devextreme/ui/dialog';
+import apiClient from '@/api/axiosConfig';
+import { showSuccess, showError } from '@/services/notification';
+import { getErrorMessage } from '@/services/errorHandler';
+
+defineProps({
+  empresas: {
+    type: Array,
+    required: true
+  },
+  manualesSubidos: {
+    type: Array,
+    required: true
+  },
+  totalManualesFijos: {
+    type: Number,
+    default: 7
+  }
+});
+
+const emit = defineEmits(['nueva-empresa', 'ver-manuales', 'ver-facturacion', 'editar-empresa']);
+const isProcesandoReseteo = ref(false);
+
+const getActions = (empresa) => {
+  return [
+    { id: 'manuales', text: 'Manuales', icon: 'folder' },
+    { id: 'facturacion', text: 'Facturación', icon: 'money' },
+    { id: 'resetearPassword', text: 'Resetear contraseña', icon: 'key' },
+    { id: 'editar', text: 'Editar datos', icon: 'edit' }
+  ];
+};
+
+const handleResetearPassword = async (empresa) => {
+  const correoDestino = empresa.emailContacto || 'el correo registrado de la institución';
+  const confirmado = await confirm(
+    `¿Desea generar y enviar un enlace seguro de restablecimiento de contraseña para "${empresa.nombreComercial}" a ${correoDestino}?`,
+    'Resetear Contraseña'
+  );
+
+  if (!confirmado) return;
+
+  isProcesandoReseteo.value = true;
+  try {
+    await apiClient.post('/portal-cliente/admin/clientes/resetear-password', {
+      clienteID: empresa.clienteID,
+      emailDestino: empresa.emailContacto
+    });
+    showSuccess(`Se ha enviado el enlace de restablecimiento al correo: ${correoDestino}`);
+  } catch (error) {
+    showError(getErrorMessage(error, 'No se pudo procesar el reseteo de la contraseña.'));
+  } finally {
+    isProcesandoReseteo.value = false;
+  }
+};
+
+const onActionItemClick = (e, empresa) => {
+  switch (e.itemData.id) {
+    case 'manuales':
+      emit('ver-manuales', empresa);
+      break;
+    case 'facturacion':
+      emit('ver-facturacion', empresa);
+      break;
+    case 'resetearPassword':
+      handleResetearPassword(empresa);
+      break;
+    case 'editar':
+      emit('editar-empresa', empresa);
+      break;
+  }
+};
+</script>
+
+
