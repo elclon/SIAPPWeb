@@ -15,6 +15,7 @@ import AdminNotificacionesTab from './admin/AdminNotificacionesTab.vue';
 import AdminNotificacionModal from './admin/AdminNotificacionModal.vue';
 import AdminAplicarNotificacionModal from './admin/AdminAplicarNotificacionModal.vue';
 import AdminLogin from './admin/AdminLogin.vue';
+import dialogService from '@/services/dialogService';
 
 // Estado de Autenticación de SuperAdmin
 const sesionAdmin = ref(null);
@@ -39,8 +40,6 @@ const isGuardandoEmpresa = ref(false);
 const isGuardandoManual = ref(false);
 const isGuardandoFactura = ref(false);
 const isCargandoNotificaciones = ref(false);
-const isGuardandoNotificacion = ref(false);
-const isAplicandoNotificacion = ref(false);
 const mensajeFeedback = ref('');
 const tipoFeedback = ref('success');
 
@@ -55,10 +54,6 @@ const notificaciones = ref([]);
 const mostrarModalEmpresa = ref(false);
 const mostrarModalSubirManualFijo = ref(false);
 const manualFijoSeleccionado = ref(null);
-const mostrarModalNotificacion = ref(false);
-const notificacionSeleccionadaEditar = ref(null);
-const mostrarModalAplicarNotificacion = ref(false);
-const notificacionParaAplicar = ref(null);
 
 // Manejo de Sesión de SuperAdmin
 const onLoginExitoso = (sesion) => {
@@ -246,20 +241,53 @@ const onMarcarPagadoFactura = async (factura) => {
   }
 };
 
-// Handlers de Notificaciones y ChangeLogs
+// Handlers de Notificaciones y ChangeLogs con dialogService (dialogResult)
 const abrirModalNuevaNotificacion = () => {
-  notificacionSeleccionadaEditar.value = null;
-  mostrarModalNotificacion.value = true;
+  dialogService.open(AdminNotificacionModal, {
+    notificacionAEditar: null
+  }, {
+    title: 'Agregar Nueva Notificación / ChangeLog',
+    width: '900px',
+    height: 'auto',
+    maxHeight: '92vh',
+    onClose: (dialogResult) => {
+      if (dialogResult && !dialogResult.canceled) {
+        cargarNotificaciones();
+      }
+    }
+  });
 };
 
 const abrirModalEditarNotificacion = (notif) => {
-  notificacionSeleccionadaEditar.value = notif;
-  mostrarModalNotificacion.value = true;
+  dialogService.open(AdminNotificacionModal, {
+    notificacionAEditar: notif
+  }, {
+    title: 'Editar Notificación / ChangeLog',
+    width: '900px',
+    height: 'auto',
+    maxHeight: '92vh',
+    onClose: (dialogResult) => {
+      if (dialogResult && !dialogResult.canceled) {
+        cargarNotificaciones();
+      }
+    }
+  });
 };
 
 const abrirModalAplicarNotificacion = (notif) => {
-  notificacionParaAplicar.value = notif;
-  mostrarModalAplicarNotificacion.value = true;
+  dialogService.open(AdminAplicarNotificacionModal, {
+    notificacion: notif
+  }, {
+    title: `Aplicar Notificación: ${notif.titulo}`,
+    width: '850px',
+    height: 'auto',
+    maxHeight: '85vh',
+    onClose: (dialogResult) => {
+      if (dialogResult && !dialogResult.canceled) {
+        cargarNotificaciones();
+      }
+    }
+  });
 };
 
 const cargarNotificaciones = async () => {
@@ -276,23 +304,6 @@ const cargarNotificaciones = async () => {
   }
 };
 
-const onGuardarNotificacion = async (payload) => {
-  isGuardandoNotificacion.value = true;
-  try {
-    await apiClient.post('/portal-cliente/admin/notificaciones/guardar', payload);
-    mostrarModalNotificacion.value = false;
-    const mensaje = payload.notificacionID > 0
-      ? `¡Notificación "${payload.titulo}" actualizada exitosamente!`
-      : `¡Notificación "${payload.titulo}" creada exitosamente!`;
-    showSuccess(mensaje);
-    await cargarNotificaciones();
-  } catch (error) {
-    showError(getErrorMessage(error, 'Error al guardar la notificación'));
-  } finally {
-    isGuardandoNotificacion.value = false;
-  }
-};
-
 const onEliminarNotificacion = async (notificacionID) => {
   try {
     await apiClient.delete(`/portal-cliente/admin/notificaciones/${notificacionID}`);
@@ -300,23 +311,6 @@ const onEliminarNotificacion = async (notificacionID) => {
     await cargarNotificaciones();
   } catch (error) {
     showError(getErrorMessage(error, 'Error al eliminar la notificación'));
-  }
-};
-
-const onAplicarNotificacionAEmpresas = async ({ notificacionID, clienteIDs }) => {
-  isAplicandoNotificacion.value = true;
-  try {
-    await apiClient.post('/portal-cliente/admin/notificaciones/aplicar-empresas', {
-      notificacionID,
-      clienteIDs
-    });
-    mostrarModalAplicarNotificacion.value = false;
-    showSuccess('¡Notificación aplicada y sincronizada en las empresas seleccionadas con éxito!');
-    await cargarNotificaciones();
-  } catch (error) {
-    showError(getErrorMessage(error, 'Error al aplicar notificación a las empresas'));
-  } finally {
-    isAplicandoNotificacion.value = false;
   }
 };
 
@@ -469,22 +463,6 @@ onMounted(() => {
       :manual-subido="manualesSubidos.find(m => m.clienteIDExclusivo === empresaSeleccionadaManuales?.clienteID && (m.codigoFijo === manualFijoSeleccionado?.codigoFijo || m.titulo.toLowerCase().includes(manualFijoSeleccionado?.codigoFijo?.toLowerCase() || '')))"
       :is-guardando="isGuardandoManual"
       @guardar="onConfirmarGuardadoManual"
-    />
-
-    <!-- MODAL 3: AGREGAR / EDITAR NOTIFICACIÓN CON DXHTMLEDITOR -->
-    <AdminNotificacionModal
-      v-model:visible="mostrarModalNotificacion"
-      :notificacion-a-editar="notificacionSeleccionadaEditar"
-      :is-guardando="isGuardandoNotificacion"
-      @guardar="onGuardarNotificacion"
-    />
-
-    <!-- MODAL 4: APLICAR NOTIFICACIÓN A EMPRESAS (DXDATAGRID MULTISELECCIÓN) -->
-    <AdminAplicarNotificacionModal
-      v-model:visible="mostrarModalAplicarNotificacion"
-      :notificacion="notificacionParaAplicar"
-      :is-aplicando="isAplicandoNotificacion"
-      @aplicar="onAplicarNotificacionAEmpresas"
     />
 
   </div>
