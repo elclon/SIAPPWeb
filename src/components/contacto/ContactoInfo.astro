@@ -1,36 +1,45 @@
 ---
+import { obtenerConfiguracionWhatsApp } from '../../services/configuracionService';
+
+const config = await obtenerConfiguracionWhatsApp();
 ---
 
 <div class="space-y-8">
   <div class="space-y-3">
-    <h3 class="text-2xl font-bold text-slate-900 dark:text-white font-heading">Información de Contacto</h3>
+    <h3 class="text-2xl font-bold text-slate-900 dark:text-white font-heading">
+      Información de Contacto
+    </h3>
     <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-      Puedes escribirnos o llamarnos directamente para recibir atención inmediata de nuestro departamento comercial.
+      Puedes escribirnos o llamarnos directamente para recibir atención
+      inmediata de nuestro departamento comercial.
     </p>
   </div>
 
   <div class="space-y-4">
-    <div class="flex items-start gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-      <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg flex-shrink-0">
-        <i class="fa-light fa-phone"></i>
-      </div>
-      <div>
-        <div class="text-xs text-slate-400 font-medium">Llámanos</div>
-        <div class="text-sm font-bold text-slate-900 dark:text-white">+51 958 123 456 / (054) 289 123</div>
-        <div class="text-xs text-slate-500 dark:text-slate-400">Lunes a Viernes 8:00 am - 7:00 pm</div>
-      </div>
-    </div>
-
-    <div class="flex items-start gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg flex-shrink-0">
+    <a
+      href={config.urlWhatsAppVentas}
+      data-whatsapp-link="ventas"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="flex items-start gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all group cursor-pointer block"
+    >
+      <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
         <i class="fa-brands fa-whatsapp"></i>
       </div>
       <div>
         <div class="text-xs text-slate-400 font-medium">WhatsApp Comercial</div>
-        <div class="text-sm font-bold text-slate-900 dark:text-white">+51 958 123 456</div>
-        <div class="text-xs text-slate-500 dark:text-slate-400">Respuesta inmediata</div>
+        <div
+          class="text-sm font-bold text-slate-900 dark:text-white"
+          data-whatsapp-text="numeroFormateado"
+        >
+          {config.numeroFormateado}
+        </div>
+        <div class="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1 mt-0.5">
+          <span>Respuesta inmediata</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+        </div>
       </div>
-    </div>
+    </a>
 
     <div class="flex items-start gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
       <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg flex-shrink-0">
@@ -38,8 +47,12 @@
       </div>
       <div>
         <div class="text-xs text-slate-400 font-medium">Correo Electrónico</div>
-        <div class="text-sm font-bold text-slate-900 dark:text-white">ventas@siapp.pe</div>
-        <div class="text-xs text-slate-500 dark:text-slate-400">Para cotizaciones formales</div>
+        <div class="text-sm font-bold text-slate-900 dark:text-white">
+          ventas@siapp.edu.pe
+        </div>
+        <div class="text-xs text-slate-500 dark:text-slate-400">
+          Para cotizaciones formales
+        </div>
       </div>
     </div>
   </div>
@@ -50,7 +63,15 @@
       <span>¿Ya eres cliente y tienes dudas?</span>
     </div>
     <p class="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
-      Puedes consultar tus recibos o pagar tu suscripción directamente desde nuestro <a href="/clientes" class="underline font-bold text-blue-900 dark:text-blue-100">Portal de Clientes</a>.
+      Puedes consultar tus recibos o pagar tu suscripción directamente desde
+      nuestro{' '}
+      <a
+        href="/clientes"
+        class="underline font-bold text-blue-900 dark:text-blue-100"
+      >
+        Portal de Clientes
+      </a>
+      .
     </p>
   </div>
 </div>

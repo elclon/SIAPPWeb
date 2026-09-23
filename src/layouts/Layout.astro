@@ -1,6 +1,7 @@
 ---
 import Navbar from '../components/common/Navbar.astro';
 import Footer from '../components/common/Footer.astro';
+import FloatingWhatsApp from '../components/common/FloatingWhatsApp.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -68,6 +69,9 @@ const {
 
     <!-- Footer Global -->
     {!hideFooter && <Footer />}
+
+    <!-- Botón Flotante de WhatsApp Global -->
+    <FloatingWhatsApp />
   </body>
 </html>
 
@@ -79,4 +83,51 @@ const {
 
 <script>
   import '../components/portal/admin/devextreme-init';
+  import { obtenerConfiguracionWhatsApp } from '../services/configuracionService';
+
+  async function sincronizarEnlacesWhatsApp() {
+    try {
+      const config = await obtenerConfiguracionWhatsApp();
+      if (!config) return;
+
+      // 1. Actualizar enlaces directos a WhatsApp (wa.me)
+      document.querySelectorAll('[data-whatsapp-link]').forEach(el => {
+        const tipo = el.getAttribute('data-whatsapp-link');
+        let targetUrl = config.urlWhatsAppGeneral;
+        if (tipo === 'soporte') {
+          targetUrl = config.urlWhatsAppSoporte;
+        } else if (tipo === 'ventas') {
+          targetUrl = config.urlWhatsAppVentas;
+        }
+
+        if (targetUrl) {
+          el.setAttribute('href', targetUrl);
+        }
+      });
+
+      // 2. Actualizar textos de número telefónico
+      document.querySelectorAll('[data-whatsapp-text]').forEach(el => {
+        const tipo = el.getAttribute('data-whatsapp-text');
+        if (tipo === 'numeroFormateado' && config.numeroFormateado) {
+          el.textContent = config.numeroFormateado;
+        } else if (tipo === 'numero' && config.numero) {
+          el.textContent = config.numero;
+        }
+      });
+
+      // 3. Actualizar enlaces tel:
+      document.querySelectorAll('[data-tel-link]').forEach(el => {
+        if (config.numero) {
+          el.setAttribute('href', `tel:+${config.numero}`);
+        }
+      });
+    } catch (e) {
+      console.error('Error al sincronizar configuración de WhatsApp en cliente:', e);
+    }
+  }
+
+  if (typeof document !== 'undefined') {
+    sincronizarEnlacesWhatsApp();
+    document.addEventListener('astro:page-load', sincronizarEnlacesWhatsApp);
+  }
 </script>

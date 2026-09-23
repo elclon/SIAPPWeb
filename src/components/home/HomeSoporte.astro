@@ -1,9 +1,11 @@
 ---
 // Componente de Sección: El mejor Soporte Técnico
+import { obtenerConfiguracionWhatsApp } from '../../services/configuracionService';
+
+const config = await obtenerConfiguracionWhatsApp();
 ---
 
 <section class="py-16 sm:py-24 bg-gradient-to-b from-slate-50/70 via-white to-slate-50/70 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border-t border-slate-200/80 dark:border-slate-800 relative overflow-hidden transition-colors duration-200">
-  
   <!-- Decoración de Fondo Suave -->
   <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none overflow-hidden -z-10">
     <div class="absolute -top-24 -left-24 w-96 h-96 bg-blue-100/40 dark:bg-blue-950/20 rounded-full blur-3xl"></div>
@@ -11,7 +13,6 @@
   </div>
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    
     <!-- Encabezado de la Sección -->
     <div class="text-center max-w-3xl mx-auto mb-14 sm:mb-16 space-y-3">
       <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60 uppercase tracking-wider">
@@ -22,13 +23,14 @@
         El mejor Soporte Técnico
       </h2>
       <p class="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
-        Tu institución nunca se detiene. Contamos con un equipo de ingenieros y especialistas dedicados a brindarte atención inmediata por el canal que tú prefieras.
+        Tu institución nunca se detiene. Contamos con un equipo de ingenieros y
+        especialistas dedicados a brindarte atención inmediata por el canal que
+        tú prefieras.
       </p>
     </div>
 
     <!-- Cuadrícula de Canales de Soporte (4 Columnas) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-      
       <!-- CANAL 1: LLAMADAS -->
       <div class="bg-white dark:bg-slate-900/90 rounded-2xl p-6 border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
         <div class="space-y-4">
@@ -36,22 +38,26 @@
             <i class="fa-light fa-phone-volume"></i>
           </div>
           <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block mb-1">Central Directa</span>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block mb-1">
+              Central Directa
+            </span>
             <h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               Llamadas
             </h3>
           </div>
           <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed">
-            Atención telefónica directa con nuestros ingenieros de soporte para resolver dudas operativas y consultas prioritarias al instante.
+            Atención telefónica directa con nuestros ingenieros de soporte para
+            resolver dudas operativas y consultas prioritarias al instante.
           </p>
         </div>
 
         <div class="pt-5 mt-5 border-t border-slate-100 dark:border-slate-800">
           <a
-            href="tel:+51958123456"
+            href={`tel:+${config.numero}`}
+            data-tel-link
             class="inline-flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
           >
-            <span>+51 958 123 456</span>
+            <span data-whatsapp-text="numeroFormateado">{config.numeroFormateado}</span>
             <i class="fa-solid fa-arrow-right text-[10px]"></i>
           </a>
         </div>
@@ -64,13 +70,16 @@
             <i class="fa-light fa-comments-question-check"></i>
           </div>
           <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 block mb-1">Mesa de Ayuda</span>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 block mb-1">
+              Mesa de Ayuda
+            </span>
             <h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
               Ayuda en línea
             </h3>
           </div>
           <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed">
-            Plataforma digital con sistema de tickets, base de conocimientos, tutoriales en video y guías paso a paso accesibles las 24 horas.
+            Plataforma digital con sistema de tickets, base de conocimientos,
+            tutoriales en video y guías paso a paso accesibles las 24 horas.
           </p>
         </div>
 
@@ -92,19 +101,24 @@
             <i class="fa-brands fa-whatsapp"></i>
           </div>
           <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1">Respuesta Rápida</span>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1">
+              Respuesta Rápida
+            </span>
             <h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
               Whatsapp
             </h3>
           </div>
           <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed">
-            Canal preferido por los usuarios: envía capturas de pantalla, audios o preguntas rápidas y recibe respuesta ágil de nuestro equipo técnico.
+            Canal preferido por los usuarios: envía capturas de pantalla, audios
+            o preguntas rápidas y recibe respuesta ágil de nuestro equipo
+            técnico.
           </p>
         </div>
 
         <div class="pt-5 mt-5 border-t border-slate-100 dark:border-slate-800">
           <a
-            href="https://wa.me/51958123456?text=Hola,%20necesito%20soporte%20t%C3%A9cnico%20de%20SIAPP"
+            href={config.urlWhatsAppSoporte}
+            data-whatsapp-link="soporte"
             target="_blank"
             rel="noopener noreferrer"
             class="inline-flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors"
@@ -122,13 +136,17 @@
             <i class="fa-light fa-laptop-arrow-down"></i>
           </div>
           <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block mb-1">En tu Pantalla</span>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block mb-1">
+              En tu Pantalla
+            </span>
             <h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               Asistencia Remota
             </h3>
           </div>
           <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm leading-relaxed">
-            Nos conectamos de forma segura mediante AnyDesk o TeamViewer para diagnosticar, configurar parámetros y solucionar incidencias directamente contigo.
+            Nos conectamos de forma segura mediante AnyDesk o TeamViewer para
+            diagnosticar, configurar parámetros y solucionar incidencias
+            directamente contigo.
           </p>
         </div>
 
@@ -139,7 +157,6 @@
           </span>
         </div>
       </div>
-
     </div>
 
     <!-- BANNER INFORMATIVO INFERIOR: COMPROMISO DE ATENCIÓN -->
@@ -153,7 +170,8 @@
             Tiempos de respuesta récord
           </h4>
           <p class="text-slate-400 text-xs sm:text-sm">
-            Atendemos incidencias prioritarias con tiempos de primera respuesta menores a 15 minutos.
+            Atendemos incidencias prioritarias con tiempos de primera respuesta
+            menores a 15 minutos.
           </p>
         </div>
       </div>
@@ -166,7 +184,5 @@
         <span>Solicitar Asistencia</span>
       </a>
     </div>
-
   </div>
-
 </section>
