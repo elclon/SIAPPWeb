@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { showError } from '@/services/notification';
 
-const rawBaseUrl = import.meta.env.PUBLIC_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'https://localhost:7087';
+const defaultApiUrl = import.meta.env.PROD ? 'https://api.siapp.edu.pe' : 'https://localhost:7087';
+const rawBaseUrl = import.meta.env.PUBLIC_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || defaultApiUrl;
 const normalizedBaseUrl = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
 
 const apiClient = axios.create({

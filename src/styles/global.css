@@ -9,6 +9,26 @@ html, body {
   width: 100%;
 }
 
+/* ==========================================================================
+   Supresión Completa de Marca de Evaluación DevExtreme (Licencia Institucional)
+   ========================================================================== */
+dx-license,
+dx-license-trigger,
+.dx-license,
+.dx-license-trigger,
+[class*="dx-license"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  z-index: -9999 !important;
+}
+
 /* Aislamiento estricto de overlays DevExtreme y Quill */
 .dx-overlay-wrapper,
 .dx-popup-wrapper,
@@ -47,6 +67,60 @@ html, body {
   clip: rect(0, 0, 0, 0) !important;
 }
 
+/* ==========================================================================
+   Motor de Animaciones al Explorar la Página (Scroll Reveal & Micro-interactions)
+   ========================================================================== */
+
+/* Estado Inicial Oculto */
+.reveal-init,
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition-property: opacity, transform, filter;
+  transition-duration: 0.75s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+/* Variantes de Dirección */
+[data-reveal="fade-down"] {
+  transform: translateY(-28px);
+}
+
+[data-reveal="fade-left"] {
+  transform: translateX(-32px);
+}
+
+[data-reveal="fade-right"] {
+  transform: translateX(32px);
+}
+
+[data-reveal="zoom-in"] {
+  transform: scale(0.92);
+}
+
+[data-reveal="flip-up"] {
+  transform: perspective(700px) rotateX(12deg) translateY(24px);
+}
+
+/* Estado Revelado al Entrar en Pantalla */
+.reveal-init.reveal-in,
+[data-reveal].reveal-in {
+  opacity: 1 !important;
+  transform: translate(0, 0) scale(1) rotate(0deg) !important;
+  filter: blur(0px) !important;
+}
+
+/* Clases de Retardo Escalonado */
+.delay-100 { transition-delay: 100ms !important; }
+.delay-150 { transition-delay: 150ms !important; }
+.delay-200 { transition-delay: 200ms !important; }
+.delay-300 { transition-delay: 300ms !important; }
+.delay-400 { transition-delay: 400ms !important; }
+.delay-500 { transition-delay: 500ms !important; }
+
+/* Micro-animaciones de Fondo y Flotación */
 @keyframes float {
   0%, 100% {
     transform: translateY(0px) rotate(0deg);
@@ -76,6 +150,15 @@ html, body {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 .animate-float {
   animation: float 5s ease-in-out infinite;
 }
@@ -90,6 +173,20 @@ html, body {
 
 .animate-pulse-slow {
   animation: pulse-slow 8s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s infinite;
+}
+
+/* Efectos de Hover Suave en Tarjetas */
+.hover-card-lift {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hover-card-lift:hover {
+  transform: translateY(-5px);
 }
 
 /* Tipografía de Encabezados */
