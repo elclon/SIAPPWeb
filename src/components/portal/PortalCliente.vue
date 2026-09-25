@@ -147,6 +147,18 @@ onMounted(() => {
     const token = params.get('token');
     if (token) {
       validarTokenUrl(token);
+    } else {
+      const sesionGuardada = sessionStorage.getItem('siapp_cliente_sesion') || localStorage.getItem('siapp_cliente_sesion');
+      if (sesionGuardada) {
+        try {
+          sesionCliente.value = JSON.parse(sesionGuardada);
+          if (sesionCliente.value?.clienteID) {
+            cargarDatosPortal(sesionCliente.value.clienteID);
+          }
+        } catch (e) {
+          sesionCliente.value = null;
+        }
+      }
     }
   }
 });
@@ -222,6 +234,12 @@ const iniciarSesion = async () => {
 
     if (response.data) {
       sesionCliente.value = response.data;
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('siapp_cliente_sesion', JSON.stringify(response.data));
+        if (response.data.token) {
+          sessionStorage.setItem('token', response.data.token);
+        }
+      }
       await cargarDatosPortal(response.data.clienteID);
     }
   } catch (err) {
@@ -260,6 +278,12 @@ const cerrarSesion = () => {
   sesionCliente.value = null;
   formLogin.value.password = '';
   mensajePagoExito.value = '';
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem('siapp_cliente_sesion');
+    sessionStorage.removeItem('token');
+    localStorage.removeItem('siapp_cliente_sesion');
+    localStorage.removeItem('token');
+  }
 };
 
 // Abrir Modal para Reportar Pago

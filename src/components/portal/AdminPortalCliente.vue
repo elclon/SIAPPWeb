@@ -65,6 +65,8 @@ const onCerrarSesion = () => {
   if (typeof window !== 'undefined') {
     sessionStorage.removeItem('siapp_admin_sesion');
     sessionStorage.removeItem('token');
+    localStorage.removeItem('siapp_admin_sesion');
+    localStorage.removeItem('token');
   }
   empresas.value = [];
   calculosClientes.value = [];
