@@ -14,6 +14,7 @@ import AdminSubirManualModal from './admin/AdminSubirManualModal.vue';
 import AdminNotificacionesTab from './admin/AdminNotificacionesTab.vue';
 import AdminNotificacionModal from './admin/AdminNotificacionModal.vue';
 import AdminAplicarNotificacionModal from './admin/AdminAplicarNotificacionModal.vue';
+import AdminUsuariosConectadosTab from './admin/AdminUsuariosConectadosTab.vue';
 import AdminLogin from './admin/AdminLogin.vue';
 import dialogService from '@/services/dialogService';
 
@@ -359,6 +360,20 @@ onMounted(() => {
           {{ notificaciones.length }}
         </span>
       </button>
+
+      <button
+        type="button"
+        @click="tabPrincipal = 'conectados'"
+        :class="tabPrincipal === 'conectados' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'"
+        class="px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer"
+      >
+        <i class="fa-light fa-users-viewfinder text-sm text-emerald-500"></i>
+        <span>Usuarios Conectados</span>
+        <span class="flex h-2 w-2 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+      </button>
     </div>
 
     <!-- VISTA TAB 1: EMPRESAS, MANUALES Y FACTURACIÓN -->
@@ -411,6 +426,13 @@ onMounted(() => {
         @editar-notificacion="abrirModalEditarNotificacion"
         @eliminar-notificacion="onEliminarNotificacion"
         @aplicar-notificacion="abrirModalAplicarNotificacion"
+      />
+    </div>
+
+    <!-- VISTA TAB 3: USUARIOS CONECTADOS EN TIEMPO REAL -->
+    <div v-else-if="tabPrincipal === 'conectados'">
+      <AdminUsuariosConectadosTab
+        :empresas="empresas"
       />
     </div>
 

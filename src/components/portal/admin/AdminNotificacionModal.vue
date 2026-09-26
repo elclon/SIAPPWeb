@@ -87,19 +87,11 @@
         </DxGroupItem>
 
         <!-- COMPORTAMIENTO Y VISIBILIDAD -->
-        <DxGroupItem :col-count="2">
+        <DxGroupItem :col-count="1">
           <DxSimpleItem
             data-field="mostrarPopupInicio"
             editor-type="dxCheckBox"
             :editor-options="checkPopupOptions"
-          >
-            <DxLabel :visible="false" />
-          </DxSimpleItem>
-
-          <DxSimpleItem
-            data-field="activo"
-            editor-type="dxCheckBox"
-            :editor-options="checkActivoOptions"
           >
             <DxLabel :visible="false" />
           </DxSimpleItem>
@@ -265,7 +257,6 @@ const checkDocentesOptions = { text: '👨‍🏫 Portal Docentes' };
 const checkAdminOptions = { text: '🏢 Administrativos' };
 const checkPadresOptions = { text: '👨‍👩‍👧 Padres de Familia' };
 const checkPopupOptions = { text: 'Mostrar popup modal de bienvenida al iniciar sesión' };
-const checkActivoOptions = { text: 'Notificación activa y visible' };
 
 // Configuración estática de DxHtmlEditor (Idéntica a SIAPPClient)
 const htmlEditorOptions = {

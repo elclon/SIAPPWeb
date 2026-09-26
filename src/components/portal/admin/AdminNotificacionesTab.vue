@@ -1,9 +1,14 @@
 <script setup>
+import { ref } from 'vue';
 import { DxDataGrid, DxColumn, DxSearchPanel, DxPaging, DxPager } from 'devextreme-vue/data-grid';
 import { DxButton } from 'devextreme-vue/button';
+import { DxSwitch } from 'devextreme-vue/switch';
 import { DxDropDownButton } from 'devextreme-vue/drop-down-button';
 import { confirm } from 'devextreme/ui/dialog';
 import { formatFechaCorta } from '@/utils/helpers';
+import apiClient from '@/api/axiosConfig';
+import { showSuccess, showError } from '@/services/notification';
+import { getErrorMessage } from '@/services/errorHandler';
 
 defineProps({
   notificaciones: {
@@ -17,6 +22,30 @@ defineProps({
 });
 
 const emit = defineEmits(['nueva-notificacion', 'editar-notificacion', 'eliminar-notificacion', 'aplicar-notificacion']);
+
+const isToggling = ref({});
+
+const onToggleActivo = async (e, notificacion) => {
+  const nuevoValor = e.value;
+  if (notificacion.activo === nuevoValor) return;
+
+  const anteriorValor = notificacion.activo;
+  notificacion.activo = nuevoValor;
+  isToggling.value[notificacion.notificacionID] = true;
+
+  try {
+    await apiClient.post('/portal-cliente/admin/notificaciones/toggle-activo', {
+      notificacionID: notificacion.notificacionID,
+      activo: nuevoValor
+    });
+    showSuccess(nuevoValor ? `Notificación "${notificacion.titulo}" activada` : `Notificación "${notificacion.titulo}" desactivada`);
+  } catch (error) {
+    notificacion.activo = anteriorValor;
+    showError(getErrorMessage(error, 'No se pudo actualizar el estado de la notificación'));
+  } finally {
+    isToggling.value[notificacion.notificacionID] = false;
+  }
+};
 
 const actionItems = [
   { id: 'aplicar', text: 'Aplicar a Empresas', icon: 'check' },
@@ -97,7 +126,7 @@ const onActionItemClick = async (e, notificacion) => {
         <DxColumn caption="Plataformas" :width="230" cell-template="plataformasTemplate" />
         <DxColumn data-field="totalEmpresasAplicadas" caption="Empresas" :width="120" alignment="center" cell-template="empresasTemplate" />
         <DxColumn data-field="fechaPublicacion" caption="Publicación" :width="110" alignment="center" cell-template="fechaTemplate" />
-        <DxColumn data-field="activo" caption="Estado" :width="90" alignment="center" cell-template="estadoTemplate" />
+        <DxColumn data-field="activo" caption="Activo" :width="100" alignment="center" cell-template="estadoTemplate" />
         <DxColumn caption="" :width="50" alignment="center" cell-template="accionesTemplate" />
 
         <!-- TEMPLATE: TIPO DE NOTIFICACIÓN -->
@@ -185,13 +214,17 @@ const onActionItemClick = async (e, notificacion) => {
           </span>
         </template>
 
-        <!-- TEMPLATE: ESTADO -->
+        <!-- TEMPLATE: ESTADO (SWITCH) -->
         <template #estadoTemplate="{ data }">
-          <span
-            :class="data.value ? 'bg-emerald-500' : 'bg-slate-300'"
-            class="inline-block w-2.5 h-2.5 rounded-full"
-            :title="data.value ? 'Activo' : 'Inactivo'"
-          ></span>
+          <div class="flex items-center justify-center py-1">
+            <DxSwitch
+              :value="data.data.activo"
+              :switched-on-text="''"
+              :switched-off-text="''"
+              :disabled="!!isToggling[data.data.notificacionID]"
+              @value-changed="(e) => onToggleActivo(e, data.data)"
+            />
+          </div>
         </template>
 
         <!-- TEMPLATE: ACCIONES -->
