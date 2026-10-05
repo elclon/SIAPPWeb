@@ -129,11 +129,12 @@ defineProps({
   }
 });
 
-const emit = defineEmits(['nueva-empresa', 'ver-manuales', 'ver-facturacion', 'editar-empresa']);
+const emit = defineEmits(['nueva-empresa', 'ver-manuales', 'ver-facturacion', 'editar-empresa', 'configurar-aspecto']);
 const isProcesandoReseteo = ref(false);
 
 const getActions = (empresa) => {
   return [
+    { id: 'aspecto', text: 'Aspecto y Logotipos', icon: 'palette' },
     { id: 'manuales', text: 'Manuales', icon: 'folder' },
     { id: 'facturacion', text: 'Facturación', icon: 'money' },
     { id: 'resetearPassword', text: 'Resetear contraseña', icon: 'key' },
@@ -166,6 +167,9 @@ const handleResetearPassword = async (empresa) => {
 
 const onActionItemClick = (e, empresa) => {
   switch (e.itemData.id) {
+    case 'aspecto':
+      emit('configurar-aspecto', empresa);
+      break;
     case 'manuales':
       emit('ver-manuales', empresa);
       break;
