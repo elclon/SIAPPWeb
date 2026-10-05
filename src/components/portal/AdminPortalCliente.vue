@@ -10,6 +10,7 @@ import AdminEmpresasTab from './admin/AdminEmpresasTab.vue';
 import AdminManualesEmpresaPanel from './admin/AdminManualesEmpresaPanel.vue';
 import AdminCalculoFacturacionTab from './admin/AdminCalculoFacturacionTab.vue';
 import AdminEmpresaModal from './admin/AdminEmpresaModal.vue';
+import AdminAspectoEmpresaPanel from './admin/AdminAspectoEmpresaPanel.vue';
 import AdminSubirManualModal from './admin/AdminSubirManualModal.vue';
 import AdminNotificacionesTab from './admin/AdminNotificacionesTab.vue';
 import AdminNotificacionModal from './admin/AdminNotificacionModal.vue';
@@ -27,6 +28,7 @@ const tabPrincipal = ref('empresas');
 // Vista de detalle contextual para una empresa seleccionada (null = ver lista de empresas)
 const empresaSeleccionadaManuales = ref(null);
 const empresaSeleccionadaFacturacion = ref(null);
+const empresaSeleccionadaAspecto = ref(null);
 
 // Período de Consulta para Conteo y Facturación
 const anioActual = new Date().getFullYear();
@@ -112,19 +114,28 @@ const abrirModalEditarEmpresa = (empresa) => {
   });
 };
 
+const abrirPanelAspectoEmpresa = (empresa) => {
+  empresaSeleccionadaAspecto.value = empresa;
+  empresaSeleccionadaManuales.value = null;
+  empresaSeleccionadaFacturacion.value = null;
+};
+
 const abrirPanelManualesEmpresa = (empresa) => {
   empresaSeleccionadaManuales.value = empresa;
   empresaSeleccionadaFacturacion.value = null;
+  empresaSeleccionadaAspecto.value = null;
 };
 
 const abrirPanelFacturacionEmpresa = (empresa) => {
   empresaSeleccionadaFacturacion.value = empresa;
   empresaSeleccionadaManuales.value = null;
+  empresaSeleccionadaAspecto.value = null;
 };
 
 const volverAListaEmpresas = () => {
   empresaSeleccionadaManuales.value = null;
   empresaSeleccionadaFacturacion.value = null;
+  empresaSeleccionadaAspecto.value = null;
 };
 
 const abrirModalSubirManual = (manualFijo) => {
@@ -376,11 +387,11 @@ onMounted(() => {
       </button>
     </div>
 
-    <!-- VISTA TAB 1: EMPRESAS, MANUALES Y FACTURACIÓN -->
+    <!-- VISTA TAB 1: EMPRESAS, MANUALES, FACTURACIÓN Y ASPECTO -->
     <div v-if="tabPrincipal === 'empresas'">
       <!-- CASO A: TABLA DE DIRECTORIO DE EMPRESAS -->
       <AdminEmpresasTab
-        v-if="!empresaSeleccionadaManuales && !empresaSeleccionadaFacturacion"
+        v-if="!empresaSeleccionadaManuales && !empresaSeleccionadaFacturacion && !empresaSeleccionadaAspecto"
         :empresas="empresas"
         :manuales-subidos="manualesSubidos"
         :total-manuales-fijos="MANUALES_FIJOS_MINEDU.length"
@@ -388,6 +399,7 @@ onMounted(() => {
         @ver-manuales="abrirPanelManualesEmpresa"
         @ver-facturacion="abrirPanelFacturacionEmpresa"
         @editar-empresa="abrirModalEditarEmpresa"
+        @configurar-aspecto="abrirPanelAspectoEmpresa"
       />
 
       <!-- CASO B: PANEL DE LOS 7 MANUALES FIJOS MINEDU DE LA EMPRESA SELECCIONADA -->
@@ -413,6 +425,13 @@ onMounted(() => {
         @factura-subida="cargarFacturas"
         @notificar-factura="onNotificarFactura"
         @marcar-pagado="onMarcarPagadoFactura"
+        @volver="volverAListaEmpresas"
+      />
+
+      <!-- CASO D: PANEL DE ASPECTO Y LOGOTIPOS DE LA EMPRESA SELECCIONADA (PÁGINA COMPLETA) -->
+      <AdminAspectoEmpresaPanel
+        v-else-if="empresaSeleccionadaAspecto"
+        :empresa="empresaSeleccionadaAspecto"
         @volver="volverAListaEmpresas"
       />
     </div>
