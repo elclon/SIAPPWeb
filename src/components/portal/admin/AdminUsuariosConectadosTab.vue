@@ -213,14 +213,25 @@
         <template #usuarioTemplate="{ data }">
           <div class="py-1 flex items-center gap-2">
             <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-xs text-slate-700 dark:text-slate-200 uppercase flex-shrink-0">
-              {{ (data.data.nombreCompleto || 'U')[0] }}
+              {{ (data.data.nombreCompleto || data.data.correo || 'U')[0] }}
             </div>
             <div>
               <p class="font-bold text-xs text-slate-800 dark:text-slate-100 m-0">
-                {{ data.data.nombreCompleto }}
+                {{ data.data.nombreCompleto || 'Usuario Conectado' }}
               </p>
-              <p class="text-[11px] text-slate-400 font-mono m-0">
-                Doc: {{ data.data.nroDocumento || 'S/D' }}
+              <p class="text-[11px] text-slate-400 font-mono m-0 flex items-center gap-1.5 flex-wrap">
+                <span v-if="data.data.nroDocumento">
+                  Doc: {{ data.data.nroDocumento }}
+                </span>
+                <span v-else-if="data.data.correo" class="text-sky-600 dark:text-sky-400">
+                  {{ data.data.correo }}
+                </span>
+                <span v-else class="text-amber-500">
+                  ID: {{ data.data.usuarioID || 'S/D' }}
+                </span>
+                <span v-if="data.data.nroDocumento && data.data.correo" class="text-slate-400 font-sans">
+                  • {{ data.data.correo }}
+                </span>
               </p>
             </div>
           </div>
