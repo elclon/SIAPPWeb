@@ -19,32 +19,50 @@ export const modulos: ModuloInfo[] = [
     color: 'from-blue-600 to-indigo-600',
     bgLight: 'bg-blue-50',
     textColor: 'text-blue-600',
-    description: 'Administra toda la estructura pedagógica de tu institución con flexibilidad y cumplimiento estricto de las normativas vigentes.',
+    description: 'Administra toda la estructura pedagógica de tu institución con flexibilidad en el sistema de evaluación y cumplimiento estricto de las normativas vigentes.',
     features: [
       'Configuración de Programas de Estudio, Carreras y Cursos de Extensión.',
+      'Configuración de notas por pesos ponderados o de forma equitativa, diferenciada por programa.',
       'Planes Curriculares por créditos y horas pedagógicas.',
       'Control de prerrequisitos académicos automáticos en matrícula.',
       'Creación de grupos, semestres, turnos (Mañana, Tarde, Noche) y secciones.',
-      'Asignación de carga lectiva a docentes con validación de cruces.',
-      'Emisión de actas oficiales de notas consolidadas.'
+      'Asignación de carga lectiva a docentes con validación de cruces y emisión de actas oficiales.'
+    ]
+  },
+  {
+    id: 'aula-virtual',
+    tag: 'Aprendizaje Digital',
+    title: 'Aula Virtual Propia y Exámenes en Línea',
+    icon: 'fa-light fa-chalkboard-user',
+    color: 'from-cyan-600 to-blue-600',
+    bgLight: 'bg-cyan-50',
+    textColor: 'text-cyan-600',
+    description: 'Plataforma de aprendizaje 100% propia e integrada en SIAPP, sin depender de sistemas externos, diseñada para gestionar clases, recursos y evaluaciones interactivas.',
+    features: [
+      'Publicación organizada de lecciones, materiales multimedia y recursos de clase.',
+      'Asignación y entrega de tareas en línea con control de plazos y revisión docente.',
+      'Exámenes en línea configurables con calificación automática al instante.',
+      'Integración directa con el registro de notas (por pesos o equitativo según el programa).',
+      'Retroalimentación inmediata al estudiante tras finalizar sus evaluaciones.',
+      'Acceso fluido desde computadoras, tablets y celulares sin instalar aplicaciones adicionales.'
     ]
   },
   {
     id: 'tesoreria',
     tag: 'Finanzas y Caja',
-    title: 'Tesorería y Planes de Pago',
+    title: 'Tesorería, Pasarela de Pagos y Cobranzas',
     icon: 'fa-light fa-cash-register',
     color: 'from-indigo-600 to-violet-600',
     bgLight: 'bg-indigo-50',
     textColor: 'text-indigo-600',
-    description: 'Control financiero riguroso que optimiza la recaudación, reduce la morosidad y cuadra las cajas en tiempo real.',
+    description: 'Control financiero riguroso que optimiza la recaudación con pagos en línea, validación de comprobantes, recordatorios por correo y cuadre de cajas en tiempo real.',
     features: [
-      'Generación automática de cuotas mensuales y matrículas.',
-      'Control de deudas, moras automáticas y descuentos por pronto pago.',
+      'Cobranzas en línea con tarjeta o Yape a través de pasarela de pago integrada.',
+      'Subida de comprobantes de pago (vouchers) por parte de los alumnos para validación.',
+      'Envío de recordatorios de pago a alumnos a través de correos electrónicos.',
+      'Generación automática de cuotas mensuales, matrículas, moras y descuentos.',
       'Apertura, movimiento y arqueo de cajas diarias por usuario y sucursal.',
-      'Múltiples medios de pago: Efectivo, Tarjetas (POS), Depósitos y Yape/Plin.',
-      'Generación de archivos de recaudación bancaria y actualizacón de pagos en tiempo real.',
-      'Historial y estado de cuenta al instante para padres y alumnos.'
+      'Recaudación bancaria y estado de cuenta al instante para padres y alumnos.'
     ]
   },
   {
@@ -93,11 +111,11 @@ export const modulos: ModuloInfo[] = [
     textColor: 'text-violet-600',
     description: 'Experiencia 100% digital y moderna accesible desde computadoras o celulares para profesores y alumnos.',
     features: [
-      'Docentes: Llenado de notas por criterios, asistencia por clase y sílabos.',
-      'Alumnos: Consulta de horarios semanales, notas en tiempo real y récord académico.',
-      'Alumnos: Visualización de estado de cuenta y recibos pendientes.',
-      'Muro de avisos institucionales y descarga de documentos de trámite.',
-      'Diseño responsive optimizado para smartphones.'
+      'Docentes: Gestión de aula virtual (lecciones, tareas y exámenes en línea), asistencia y sílabos.',
+      'Docentes: Registro de notas adaptado por pesos o de forma equitativa según cada programa.',
+      'Alumnos: Desarrollo de lecciones, envío de tareas y exámenes en línea con calificación al instante.',
+      'Alumnos: Pago de pensiones en línea con tarjeta o Yape y subida de comprobantes de pago.',
+      'Alumnos: Consulta de horarios, notas en tiempo real, récord académico y estado de cuenta.'
     ]
   },
   {

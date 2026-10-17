@@ -22,15 +22,15 @@ export const planes: PlanInfo[] = [
     price: 'S/ 350',
     period: '/ mes',
     featured: false,
-    description: 'Ideal para instituciones pequeñas o en crecimiento que buscan ordenar sus matrículas y notas.',
+    description: 'Ideal para instituciones pequeñas o en crecimiento que buscan ordenar sus matrículas, notas y aula virtual.',
     features: [
       'Hasta 500 alumnos activos',
       'Gestión de matrículas y grupos',
-      'Registro de notas por criterios',
+      'Notas por pesos o equitativas por programa',
+      'Aula virtual propia: lecciones y tareas',
+      'Exámenes en línea con calificación al instante',
       'Portal web para docentes y alumnos',
-      'Control básico de cuotas y recibos',
-      'Soporte técnico por correo y chat',
-      'Copias de seguridad automáticas'
+      'Soporte técnico y copias de seguridad'
     ],
     ctaText: 'Elegir Plan Académico',
     ctaLink: '/contacto?plan=academico'
@@ -41,14 +41,14 @@ export const planes: PlanInfo[] = [
     price: 'S/ 650',
     period: '/ mes',
     featured: true,
-    description: 'Nuestra solución más demandada. Control integral de caja, asistencia biométrica y facturación SUNAT.',
+    description: 'Nuestra solución más demandada. Control integral académico, aula virtual, pasarela de pagos y facturación SUNAT.',
     features: [
       'Hasta 2,500 alumnos activos',
-      'Todo lo del Plan Académico',
-      'Facturación Electrónica SUNAT ilimitada',
-      'Arqueo de cajas y múltiples cajeros',
-      'Control de asistencia con biométrico',
-      'Impresión de carnets y certificados',
+      'Todo lo del Plan Académico + Aula Virtual completa',
+      'Cobranzas en línea (Tarjeta / Yape) por pasarela de pago',
+      'Subida de comprobantes de pago y recordatorios por correo',
+      'Facturación Electrónica SUNAT ilimitada y arqueo de cajas',
+      'Control de asistencia, carnetización y certificados',
       'Integración con recaudación bancaria',
       'Soporte prioritario por WhatsApp y llamada'
     ],
@@ -66,8 +66,8 @@ export const planes: PlanInfo[] = [
       'Alumnos ilimitados y sedes múltiples',
       'Todo lo del Plan Pro',
       'Base de datos y servidor exclusivo',
-      'Integración API con Moodle, Zoom y Canvas',
-      'Módulo de streaming para clases virtuales',
+      'Aula virtual propia de alto rendimiento e integraciones API',
+      'Módulo de videoconferencias para clases en vivo',
       'Personalización de marca (Whitelabel)',
       'Capacitación presencial y virtual al personal',
       'Gerente de cuenta técnico asignado 24/7'

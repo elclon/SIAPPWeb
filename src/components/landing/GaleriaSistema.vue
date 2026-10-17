@@ -11,27 +11,27 @@ const modulos = [
     icono: 'fa-light fa-graduation-cap',
     color: 'blue',
     archivoImagen: '/images/sistema/captura-academico.png',
-    descripcion: 'Control integral de la vida académica del estudiante: desde la inscripción inicial y asignación de grupos/secciones, hasta el cálculo ponderado y emisión de certificados oficiales.',
+    descripcion: 'Control integral de la vida académica del estudiante: desde la inscripción inicial y asignación de grupos/secciones, hasta la evaluación diferenciada por programa y emisión de certificados oficiales.',
     caracteristicas: [
       'Matrícula individual y masiva con validación automática de prerrequisitos',
       'Configuración de planes de estudio, semestres, turnos y horarios',
-      'Carga de notas por docentes con rangos y fórmulas personalizadas',
+      'Configuración de notas por pesos o de forma equitativa diferenciada por programa',
       'Historial académico completo y seguimiento de egresados'
     ]
   },
   {
     id: 'caja',
     titulo: 'Caja y Tesorería',
-    subtitulo: 'Planes de Pago, Recaudación y Cierre de Caja',
+    subtitulo: 'Pasarela con Tarjeta/Yape, Vouchers y Recordatorios por Correo',
     icono: 'fa-light fa-cash-register',
     color: 'emerald',
     archivoImagen: '/images/sistema/captura-caja.png',
-    descripcion: 'Automatización completa del flujo financiero institucional. Controla cuentas por cobrar, estados de cuenta por alumno y apertura/cierre de cajas por sucursal en tiempo real.',
+    descripcion: 'Automatización completa del flujo financiero institucional: cobranzas en línea con tarjeta o Yape a través de pasarela de pago, subida de comprobantes de pago y recordatorios a alumnos por correo electrónico.',
     caracteristicas: [
-      'Cronogramas y planes de pago flexibles por ciclo o mensualidad',
-      'Cobranza rápida con soporte para efectivo, tarjetas y pasarelas digitales',
-      'Bloqueo preventivo de trámites por deuda configurable',
-      'Reportes de recaudación diaria, arqueos y conciliación bancaria'
+      'Cobranzas en línea con tarjeta o Yape mediante pasarela de pago integrada',
+      'Subida de comprobantes de pago (vouchers) para validación y conciliación',
+      'Recordatorios de pago a alumnos enviados a través de correos electrónicos',
+      'Cronogramas flexibles, arqueos de caja diaria y bloqueo preventivo por deuda'
     ]
   },
   {
@@ -66,17 +66,17 @@ const modulos = [
   },
   {
     id: 'portal',
-    titulo: 'Portal del Alumno',
-    subtitulo: 'Acceso Web y Móvil 24/7 para Estudiantes',
-    icono: 'fa-light fa-mobile-screen-button',
+    titulo: 'Aula Virtual y Portal',
+    subtitulo: 'Lecciones, Tareas y Exámenes en Línea con Calificación al Instante',
+    icono: 'fa-light fa-chalkboard-user',
     color: 'amber',
     archivoImagen: '/images/sistema/captura-portal.png',
-    descripcion: 'Entorno virtual intuitivo y responsivo para que los estudiantes consulten sus calificaciones, horarios, estado de cuenta y realicen pagos en línea de forma autónoma.',
+    descripcion: 'Aula virtual propia e integrada junto al portal estudiantil y docente para gestionar lecciones, tareas, exámenes en línea con calificación al instante, pagos online y subida de comprobantes.',
     caracteristicas: [
-      'Consulta en tiempo real de notas parciales, finales y promedios',
-      'Descarga de constancias, mallas curriculares y sílabos digitales',
-      'Pasarela de pagos integrada para abono de cuotas con Yape/tarjeta',
-      'Notificaciones académicas instantáneas y avisos de secretaría'
+      'Aula virtual propia: lecciones multimedia y entrega de tareas en línea',
+      'Exámenes en línea configurables con calificación automática al instante',
+      'Pagos en línea con tarjeta o Yape y subida de comprobantes de pago',
+      'Consulta en tiempo real de notas, horarios, constancias y estado de cuenta'
     ]
   }
 ];
